@@ -13,7 +13,9 @@ servo_rad = None
 #TODO: Track IR sensor readings (there are five readings in the array: we've been using indices 1,2,3 for left/center/right)
 ir_sensor_read = [0 for i in range(5)]
 #TODO: Create data structure to hold map representation
-map_rep = []
+height_map = None
+width_map = None
+# map_rep = [0 for in range()]
 # TODO: Use these variables to hold your publishers and subscribers
 publisher_motor = None
 publisher_odom = None
