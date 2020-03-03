@@ -6,13 +6,15 @@ from geometry_msgs.msg import Pose2D
 from std_msgs.msg import Float32MultiArray, Empty, String, Int16
 
 # GLOBALS 
-pose2d_sparki_odometry = None #Pose2D message object, contains x,y,theta members in meters and radians
+pose2d_sparki_odometry = Pose2D(0,0,0) #Pose2D message object, contains x,y,theta members in meters and radians
 #TODO: Track servo angle in radians
 servo_rad = None
 #TODO: Track IR sensor readings (there are five readings in the array: we've been using indices 1,2,3 for left/center/right)
-ir_sensor_read = []
+ir_sensor_read = [0 for i in range(5)]
 #TODO: Create data structure to hold map representation
-map_rep = []
+height_map = None
+width_map = None
+# map_rep = [0 for in range()]
 # TODO: Use these variables to hold your publishers and subscribers
 publisher_motor = None
 publisher_odom = None
@@ -29,20 +31,36 @@ def main():
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom
     global IR_THRESHOLD, CYCLE_TIME
     global pose2d_sparki_odometry
-
     #TODO: Init your node to register it with the ROS core
     init()
 
     while not rospy.is_shutdown():
         #TODO: Implement CYCLE TIME
+        begin = start.time()
 
         #TODO: Implement line following code here
         #      To create a message for changing motor speed, use Float32MultiArray()
         #      (e.g., msg = Float32MultiArray()     msg.data = [1.0,1.0]      publisher.pub(msg))
-
+        msg = Float32MultiArray()
         #TODO: Implement loop closure here
+        # add the msg.data to the where the sparki moves
+        if(ir_sensor_read[1] < IR_THRESHOLD):
+            msg.data[-1.0, 1.0]
+        elif(ir_sensor_read[2] < IR_THRESHOLD):
+            msg.data[1.0,1.0]
+        elif(ir_sensor_read[3] < IR_THRESHOLD):
+            msg.data[1.0, -1.0]
+        else: msg.data[-1.0, 1.0]
+
+        #add the publish msg to the motor and to the ping 
+        publisher_motor.publish(msg)
+        publisher_ping.publish(Empty())
+
+
         if False:
             rospy.loginfo("Loop Closure Triggered")
+        if((start.time() - begin) < 50):
+            rospy.sleep(50 - start.time() - begin)
 
         #TODO: Implement CYCLE TIME
         rospy.sleep(0)
@@ -56,6 +74,12 @@ def init():
     #TODO: Set up your publishers and subscribers
     #TODO: Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     #TODO: Set sparki's servo to an angle pointing inward to the map (e.g., 45)
+    publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray)
+    publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D)
+    publisher_ping = rospy.Publisher('sparki/ping_command', Empty)
+    publisher_servo.publish(45)
+    subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
+    subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
 
 def callback_update_odometry(data):
     # Receives geometry_msgs/Pose2D message
