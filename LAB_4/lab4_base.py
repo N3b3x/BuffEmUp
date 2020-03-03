@@ -76,12 +76,12 @@ def init():
     #TODO: Set up your publishers and subscribers
     #TODO: Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     #TODO: Set sparki's servo to an angle pointing inward to the map (e.g., 45)
-    publisher_motor = rospy
+    publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray)
     publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D)
     publisher_ping = rospy.Publisher('sparki/ping_command', Empty)
     publisher_servo.publish(45)
-    subscriber_odometry = None
-    subscriber_state = None
+    subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
+    subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
 
 def callback_update_odometry(data):
     # Receives geometry_msgs/Pose2D message
