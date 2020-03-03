@@ -30,9 +30,6 @@ def main():
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom
     global IR_THRESHOLD, CYCLE_TIME
     global pose2d_sparki_odometry
-    #add a counter to keep count of the rendering being done in the loop
-
-
     #TODO: Init your node to register it with the ROS core
     init()
 
