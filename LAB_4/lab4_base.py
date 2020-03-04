@@ -14,7 +14,7 @@ ir_sensor_read = [0 for i in range(5)]
 #TODO: Create data structure to hold map representation
 height_map = 10
 width_map = 10
-map_rep = [0 for in range(height_map * width_map)]
+map_rep = [0 for x in range(height_map * width_map)]
 # TODO: Use these variables to hold your publishers and subscribers
 publisher_motor = None
 publisher_odom = None
