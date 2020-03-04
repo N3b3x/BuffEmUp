@@ -42,15 +42,17 @@ def main():
         #      To create a message for changing motor speed, use Float32MultiArray()
         #      (e.g., msg = Float32MultiArray()     msg.data = [1.0,1.0]      publisher.pub(msg))
         msg = Float32MultiArray()
+        msg.data = [1.0, 1.0]
         #TODO: Implement loop closure here
         # add the msg.data to the where the sparki moves
         if(ir_sensor_read[1] < IR_THRESHOLD):
-            msg.data("[-1.0, 1.0]")
+            msg.data[0] = -1.0
         elif(ir_sensor_read[2] < IR_THRESHOLD):
-            msg.data[1.0,1.0]
+            pass
         elif(ir_sensor_read[3] < IR_THRESHOLD):
-            msg.data[1.0, -1.0]
-        else: msg.data[-1.0, 1.0]
+            msg.data[1] = -1.0
+        else: 
+            msg.data[0] = 1.0
 
         #add the publish msg to the motor and to the ping 
         publisher_motor.publish(msg)
@@ -60,7 +62,7 @@ def main():
         if False:
             rospy.loginfo("Loop Closure Triggered")
         if((time.time() - begin) < 50):
-            rospy.sleep(50 - start.time() - begin)
+            rospy.sleep(50 - time.time() - begin)
 
         #TODO: Implement CYCLE TIME
         rospy.sleep(0)
@@ -74,10 +76,11 @@ def init():
     #TODO: Set up your publishers and subscribers
     #TODO: Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     #TODO: Set sparki's servo to an angle pointing inward to the map (e.g., 45)
-    publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray)
-    publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D)
-    publisher_ping = rospy.Publisher('sparki/ping_command', Empty)
-    publisher_servo = rospy.Publisher('/sparki/servo_command', Empty)
+    rospy.init_node('buffemup')
+    publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray, queue_size=10)
+    publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D, queue_size=10)
+    publisher_ping = rospy.Publisher('sparki/ping_command', Empty, queue_size=10)
+    publisher_servo = rospy.Publisher('/sparki/servo_command', Empty, queue_size=10)
     subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
     subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
 
