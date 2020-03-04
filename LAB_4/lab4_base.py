@@ -77,12 +77,12 @@ def init():
     #TODO: Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     #TODO: Set sparki's servo to an angle pointing inward to the map (e.g., 45)
     rospy.init_node('buffemup')
-    publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray, queue_size=10)
-    publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D, queue_size=10)
-    publisher_ping = rospy.Publisher('sparki/ping_command', Empty, queue_size=10)
-    publisher_servo = rospy.Publisher('/sparki/servo_command', Empty, queue_size=10)
-    subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
-    subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
+    publisher_motor = rospy.Publisher('Motor_command', Float32MultiArray, queue_size=10)
+    publisher_odom = rospy.Publisher('Set_odometry', Pose2D, queue_size=10)
+    publisher_ping = rospy.Publisher('Ping_command', Empty, queue_size=10)
+    publisher_servo = rospy.Publisher('Servo_command', Empty, queue_size=10)
+    subscriber_odometry = rospy.Subscriber('Odometry', Pose2D, callback_update_odometry)
+    subscriber_state = rospy.Subscriber('State', String, callback_update_state)
 
     rospy.sleep(1)
 
@@ -90,6 +90,7 @@ def callback_update_odometry(data):
     # Receives geometry_msgs/Pose2D message
     global pose2d_sparki_odometry
     #TODO: Copy this data into your local odometry variable
+    # pose2d_sparki_odometry
 
 def callback_update_state(data):
     state_dict = json.loads(data.data) # Creates a dictionary object from the JSON string received from the state topic
