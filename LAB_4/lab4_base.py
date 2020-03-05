@@ -80,7 +80,7 @@ def init():
     publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray, queue_size=10)
     publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D, queue_size=10)
     publisher_ping = rospy.Publisher('sparki/ping_command', Empty, queue_size=10)
-    publisher_servo = rospy.Publisher('/sparki/servo_command', Empty, queue_size=10)
+    publisher_servo = rospy.Publisher('/sparki/servo_command', Int16, queue_size=10)
     subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
     subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
 
@@ -90,12 +90,16 @@ def callback_update_odometry(data):
     # Receives geometry_msgs/Pose2D message
     global pose2d_sparki_odometry
     #TODO: Copy this data into your local odometry variable
+<<<<<<< HEAD
     # pose2d_sparki_odometry
 
+=======
+    pose2d_sparki_odometry = data
+>>>>>>> 5b155b42707708ebfd9da356770018a307347cc3
 def callback_update_state(data):
     state_dict = json.loads(data.data) # Creates a dictionary object from the JSON string received from the state topic
     #TODO: Load data into your program's local state variables
-
+    ir_sensor_read = state_dict
 def convert_ultrasonic_to_robot_coords(x_us):
     #TODO: Using US sensor reading and servo angle, return value in robot-centric coordinates
     x_r, y_r = 0., 0.
