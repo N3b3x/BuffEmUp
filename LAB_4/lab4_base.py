@@ -13,8 +13,8 @@ servo_rad = None
 #TODO: Track IR sensor readings (there are five readings in the array: we've been using indices 1,2,3 for left/center/right)
 ir_sensor_read = [0 for i in range(5)]
 #TODO: Create data structure to hold map representation
-height_map = 10
-width_map = 10
+height_map = 60
+width_map = 42
 map_rep = [0 for x in range(height_map * width_map)]
 # TODO: Use these variables to hold your publishers and subscribers
 publisher_motor = None
@@ -39,7 +39,7 @@ def main():
         #TODO: Implement CYCLE TIME
         begin = time.time()
 
-        
+        publisher_ping.publish(Empty())
         #TODO: Implement line following code here
         #      To create a message for changing motor speed, use Float32MultiArray()
         #      (e.g., msg = Float32MultiArray()     msg.data = [1.0,1.0]      publisher.pub(msg))
@@ -75,9 +75,10 @@ def main():
 
 
 def init():
+
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom
     global subscriber_odometry, subscriber_state
-    global pose2d_sparki_odometry
+    global pose2d_sparki_odometry,map_rep
     #TODO: Set up your publishers and subscribers
     #TODO: Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     rospy.init_node('buffemup')
@@ -92,6 +93,7 @@ def init():
     publisher_servo.publish(90)
     publisher_render.publish(Empty())
     print("Did Init")
+    print(map_rep)
     
 
 def callback_update_odometry(data):
@@ -99,6 +101,7 @@ def callback_update_odometry(data):
     global pose2d_sparki_odometry
     #TODO: Copy this data into your local odometry variable
     pose2d_sparki_odometry = data
+
 def callback_update_state(data):
    # print("got new data",data)
     global ir_sensor_read
@@ -106,6 +109,14 @@ def callback_update_state(data):
     #TODO: Load data into your program's local state variables
     
     ir_sensor_read = state_dict["light_sensors"]
+    if 'ping' in state_dict.keys():
+        distance = state_dict['ping']
+        if distance > 0:
+            x_r,y_r = convert_ultrasonic_to_robot_coords(distance)
+            x_w,y_w = convert_robot_coords_to_world(x_r,y_r)
+            populate_map_from_ping(x_w,y_w)
+
+
 def convert_ultrasonic_to_robot_coords(x_us):
     #TODO: Using US sensor reading and servo angle, return value in robot-centric coordinates
     x_r, y_r = 0., 0.
@@ -113,6 +124,7 @@ def convert_ultrasonic_to_robot_coords(x_us):
     x_r = x_us * math.cos(servo_rad)
     y_r = x_us * math.sin(servo_rad)
 
+    #convert_robot_coords_to_world(x_r,y_r)
     return x_r, y_r
 
 def convert_robot_coords_to_world(x_r, y_r):
@@ -127,10 +139,12 @@ def convert_robot_coords_to_world(x_r, y_r):
     x_w = cos_t*x_r - sin_t*y_r + p_x
     y_w = sin_t*x_r + cos_t*y_r + p_y
 
+    #populate_map_from_ping(x_w,y_w)
     return x_w, y_w
 
 def populate_map_from_ping(x_ping, y_ping):
     #TODO: Given world coordinates of an object detected via ping, fill in the corresponding part of the map
+
     pass
 
 def display_map():
