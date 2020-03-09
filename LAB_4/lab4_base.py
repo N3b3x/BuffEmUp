@@ -1,3 +1,4 @@
+import math
 import rospy
 import json
 import copy
@@ -108,11 +109,23 @@ def callback_update_state(data):
 def convert_ultrasonic_to_robot_coords(x_us):
     #TODO: Using US sensor reading and servo angle, return value in robot-centric coordinates
     x_r, y_r = 0., 0.
+
+    x_r = x_us * math.cos(servo_rad)
+    y_r = x_us * math.sin(servo_rad)
+
     return x_r, y_r
 
 def convert_robot_coords_to_world(x_r, y_r):
     #TODO: Using odometry, convert robot-centric coordinates into world coordinates
     x_w, y_w = 0., 0.
+    global pose2d_sparki_odometry
+    p_x, p_y, p_t = pose2d_sparki_odometry
+
+    cos_t = math.cos(p_t)
+    sin_t = math.sin(p_t)
+
+    x_w = cos_t*x_r - sin_t*y_r + p_x
+    y_w = sin_t*x_r + cos_t*y_r + p_y
 
     return x_w, y_w
 
