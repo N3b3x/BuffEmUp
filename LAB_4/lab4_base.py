@@ -93,7 +93,7 @@ def init():
     publisher_servo.publish(90)
     publisher_render.publish(Empty())
     print("Did Init")
-    print(map_rep)
+    #print(map_rep)
     
 
 def callback_update_odometry(data):
@@ -143,8 +143,10 @@ def convert_robot_coords_to_world(x_r, y_r):
     return x_w, y_w
 
 def populate_map_from_ping(x_ping, y_ping):
+    global map_rep
     #TODO: Given world coordinates of an object detected via ping, fill in the corresponding part of the map
-
+    map_rep[x_ping][y_ping] = 99
+    print(map_rep)
     pass
 
 def display_map():
