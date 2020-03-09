@@ -13,8 +13,10 @@ servo_rad = None
 #TODO: Track IR sensor readings (there are five readings in the array: we've been using indices 1,2,3 for left/center/right)
 ir_sensor_read = [0 for i in range(5)]
 #TODO: Create data structure to hold map representation
+map_cell_size = 1
 height_map = 60
 width_map = 42
+max_map_dist = math.sqrt(width_map**2 + height_map**2)
 map_rep = [0 for x in range(height_map * width_map)]
 # TODO: Use these variables to hold your publishers and subscribers
 publisher_motor = None
@@ -104,11 +106,11 @@ def callback_update_odometry(data):
 
 def callback_update_state(data):
    # print("got new data",data)
-    global ir_sensor_read
+    global ir_sensor_read, servo_rad
     state_dict = json.loads(data.data) # Creates a dictionary object from the JSON string received from the state topic
-    #TODO: Load data into your program's local state variables
-    
+    servo_rad  = state_dict['servo']    
     ir_sensor_read = state_dict["light_sensors"]
+
     if 'ping' in state_dict.keys():
         distance = state_dict['ping']
         if distance > 0:
@@ -136,33 +138,55 @@ def convert_robot_coords_to_world(x_r, y_r):
     cos_t = math.cos(p_t)
     sin_t = math.sin(p_t)
 
-    x_w = cos_t*x_r - sin_t*y_r + p_x
+    x_w = cos_t*x_r - sin_t*y_r + p_x    # Return cost of traversing from one cell to another
+
     y_w = sin_t*x_r + cos_t*y_r + p_y
 
     #populate_map_from_ping(x_w,y_w)
     return x_w, y_w
 
+# Given world coordinates of an object detected via ping, fill in the corresponding part of the map
 def populate_map_from_ping(x_ping, y_ping):
-    #TODO: Given world coordinates of an object detected via ping, fill in the corresponding part of the map
+    global map_rep, map_cell_size
 
-    pass
+    # Get i and j coordinate for map representation
+    i = (int)(x_ping//map_cell_size)
+    j = (int)(y_ping//map_cell_size)
+
+    # Get cell index
+    c_index = ij_to_cell_index(i,j)
+
+    if(c_index<len(map_rep)):
+        map_rep[c_index] = 1
+
 
 def display_map():
     #TODO: Display the map
     pass
 
+# Convert from i,j coordinates to a single integer that identifies a grid cell
 def ij_to_cell_index(i,j):
-    #TODO: Convert from i,j coordinates to a single integer that identifies a grid cell
-    return 0
+    global width_map
+    cell_index = width_map*i+j
+    return cell_index
 
+# Convert from cell_index to (i,j) coordinates
 def cell_index_to_ij(cell_index):
-    #TODO: Convert from cell_index to (i,j) coordinates
-    return 0, 0
+    global width_map
+    i = cell_index/width_map
+    j = cell_index%width_map
+    return i, j
 
-
+# Return cost of traversing from one cell to another
 def cost(cell_index_from, cell_index_to):
-    #TODO: Return cost of traversing from one cell to another
-    return 0
+    global max_map_dist
+
+    pos_i, pos_j   = cell_index_to_ij(cell_index_from)
+    goal_i, goal_j = cell_index_to_ij(cell_index_to)
+
+    cost = math.sqrt((goal_i-pos_i)**2 + (goal_j-pos_j)**2) * (1/max_map_dist)
+
+    return cost
 
 if __name__ == "__main__":
     main()
