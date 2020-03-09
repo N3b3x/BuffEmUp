@@ -95,7 +95,7 @@ def init():
     publisher_servo.publish(90)
     publisher_render.publish(Empty())
     print("Did Init")
-    print(map_rep)
+    #print(map_rep)
     
 
 def callback_update_odometry(data):
