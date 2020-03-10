@@ -75,7 +75,7 @@ def main():
             #print(ir_sensor_read[1],"3")
             msg.data[1] = 0
             
-
+        #print("Odom", pose2d_sparki_odometry)
         #add the publish msg to the motor and to the ping
          
         publisher_motor.publish(msg)
@@ -90,7 +90,7 @@ def main():
             rospy.sleep(50 - time.time() - begin)
 
         #TODO: Implement CYCLE TIME
-        rospy.sleep(.3)
+        rospy.sleep(.1)
 
 
 
@@ -110,7 +110,7 @@ def init():
     subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
     rospy.sleep(1)
     #TODO: Set sparki's servo to an angle pointing inward to the map (e.g., 45)
-    publisher_servo.publish(90)
+    publisher_servo.publish(45)
     publisher_render.publish(Empty())
     print("Did Init")
     #print(map_rep)
@@ -121,6 +121,10 @@ def callback_update_odometry(data):
     global pose2d_sparki_odometry
     #TODO: Copy this data into your local odometry variable
     pose2d_sparki_odometry = data
+    #print(pose2d_sparki_odometry)
+    #print(type(pose2d_sparki_odometry))
+
+
 
 def callback_update_state(data):
    # print("got new data",data)
@@ -132,31 +136,39 @@ def callback_update_state(data):
     if 'ping' in state_dict.keys():
         distance = state_dict['ping']
         if distance > 0:
+            distance = distance 
+            print("distance",distance)
             x_r,y_r = convert_ultrasonic_to_robot_coords(distance)
+            print("robot",x_r,y_r)
             x_w,y_w = convert_robot_coords_to_world(x_r,y_r)
+            print("World",x_w,y_w)
             populate_map_from_ping(x_w,y_w)
+            stef = 5
 
 
 def convert_ultrasonic_to_robot_coords(x_us):
     #TODO: Using US sensor reading and servo angle, return value in robot-centric coordinates
     x_r, y_r = 0., 0.
 
-    x_r = x_us * math.cos(servo_rad)
-    y_r = x_us * math.sin(servo_rad)
+    x_r = x_us * math.cos(math.radians(45))
+    y_r = x_us * math.sin(math.radians(45))
 
     #convert_robot_coords_to_world(x_r,y_r)
-    return x_r, y_r
+    return x_r/100, y_r/100
 
 def convert_robot_coords_to_world(x_r, y_r):
     #TODO: Using odometry, convert robot-centric coordinates into world coordinates
     x_w, y_w = 0., 0.
     global pose2d_sparki_odometry
-    p_x, p_y, p_t = pose2d_sparki_odometry
+    
+    p_x  = (pose2d_sparki_odometry.x)
+    p_t = pose2d_sparki_odometry.theta
+    p_y = (pose2d_sparki_odometry.y)
 
     cos_t = math.cos(p_t)
     sin_t = math.sin(p_t)
 
-    x_w = cos_t*x_r - sin_t*y_r + p_x    # Return cost of traversing from one cell to another
+    x_w = cos_t*x_r - sin_t*y_r + p_x   
 
     y_w = sin_t*x_r + cos_t*y_r + p_y
 
