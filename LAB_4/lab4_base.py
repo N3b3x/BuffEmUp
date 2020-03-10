@@ -6,6 +6,18 @@ import time
 from geometry_msgs.msg import Pose2D
 from std_msgs.msg import Float32MultiArray, Empty, String, Int16
 
+# FOR VISUALS
+import tkinter as tk                        # Use "sudo apt-get install python3-tk" to get tkinter
+r = tk.Tk() 
+r.title('World Map') 
+canvas = tk.Canvas(r,width=610,height=610)
+canvas.pack()
+
+def _create_circle(self, x, y, r, **kwargs):
+    return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
+tk.Canvas.create_circle = _create_circle
+
+
 # GLOBALS 
 pose2d_sparki_odometry = Pose2D(0,0,0) #Pose2D message object, contains x,y,theta members in meters and radians
 #TODO: Track servo angle in radians
@@ -64,6 +76,7 @@ def main():
         publisher_motor.publish(msg)
         publisher_ping.publish(Empty())
         publisher_render.publish(Empty())
+        display_map()                           # Update the GUI 
 
         if False:
             rospy.loginfo("Loop Closure Triggered")
@@ -162,6 +175,33 @@ def populate_map_from_ping(x_ping, y_ping):
 
 def display_map():
     #TODO: Display the map
+    global width_map, height_map, map_rep, r
+    canvas.delete("all")        # Clears canvas
+
+    start_pixel_coord_x = 10    # First circle x coord
+    start_pixel_coord_y = 10    # First circle y coord
+    circle_rad          = 10    # Circle radius
+
+    circle_offset       = 10    # Pixel offset for each circle
+
+    for i in range (height_map):
+        for j in range(width_map):
+            c_ind = ij_to_cell_index(i,j)
+            c_val = map_rep[c_ind]
+
+            circ_x = start_pixel_coord_x + circle_offset*i
+            circ_y = start_pixel_coord_y + circle_offset*j
+
+            if(c_val == 0):
+                # if value in cell is 0, draw a white filled circle at that point
+                canvas.create_circle(circ_x, circ_y, circle_rad, fill="white", outline="#DDD", width=2)
+            elif(c_val == 1):
+                # if value in cell is 1, draw a blue filled circle at that point
+                canvas.create_circle(circ_x, circ_y, circle_rad, fill="blue", outline="#DDD", width=2)
+
+
+    r.update_idletasks()        # Clear all events in GUI (Not really necessary for us but recommended)
+    r.update()                  # Update GUI
     pass
 
 # Convert from i,j coordinates to a single integer that identifies a grid cell
