@@ -1,4 +1,5 @@
 import math
+import sys
 import rospy
 import json
 import copy
@@ -7,10 +8,14 @@ from geometry_msgs.msg import Pose2D
 from std_msgs.msg import Float32MultiArray, Empty, String, Int16
 
 # FOR VISUALS
-import tkinter as tk                        # Use "sudo apt-get install python3-tk" to get tkinter
+if sys.version_info[0] == 2:
+  import Tkinter as tk # Python 2
+else:
+  import tkinter as tk # Python 3 [Use "sudo apt-get install python3-tk" to get tkinter]
+
 r = tk.Tk() 
 r.title('World Map') 
-canvas = tk.Canvas(r,width=610,height=610)
+canvas = tk.Canvas(r,width=1200,height=840)
 canvas.pack()
 
 def _create_circle(self, x, y, r, **kwargs):
@@ -182,7 +187,7 @@ def display_map():
     start_pixel_coord_y = 10    # First circle y coord
     circle_rad          = 10    # Circle radius
 
-    circle_offset       = 10    # Pixel offset for each circle
+    circle_offset       = 20    # Pixel offset for each circle
 
     for i in range (height_map):
         for j in range(width_map):
