@@ -121,7 +121,7 @@ def init():
     # Set sparki's servo to an angle pointing inward to the map (e.g., 45)
     publisher_servo.publish(servo_deg)
     publisher_render.publish(Empty())
-    print("Did Init")
+    #print("Did Init")
     #print(map_rep)
 
 def callback_update_odometry(data):
