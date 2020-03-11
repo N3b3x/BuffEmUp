@@ -42,6 +42,7 @@ width_map = 60
 height_map = 40
 max_map_dist = math.sqrt(width_map**2 + height_map**2)
 map_rep = [0 for x in range(height_map * width_map)]
+cost_map_rep = [0 for x in range(height_map * width_map)]
 
 # Use these variables to hold your publishers and subscribers
 publisher_motor = None
@@ -247,14 +248,18 @@ def cell_index_to_ij(cell_index):
 
 # Return cost of traversing from one cell to another
 def cost(cell_index_from, cell_index_to):
-    global max_map_dist
+    global cost_map_rep
 
-    pos_i, pos_j   = cell_index_to_ij(cell_index_from)
-    goal_i, goal_j = cell_index_to_ij(cell_index_to)
-
-    cost = math.sqrt((goal_i-pos_i)**2 + (goal_j-pos_j)**2) * (1/max_map_dist)
 
     return cost
+
+def assign_int_to_cell(i,j,val):
+    global cost_map_rep
+    # Get cell index
+    c_ind = ij_to_cell_index(i,j)
+    # Assign Value
+    cost_map_rep[c_ind] = val
+
 
 if __name__ == "__main__":
     main()
