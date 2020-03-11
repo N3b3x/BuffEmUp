@@ -262,7 +262,7 @@ def cost(cell_index_from, cell_index_to):
     x,y = cell_index_to_ij(cell_index_from)
     if (n < 0 or m < 0): 
         return sys.maxsize 
-    elif (m == y and n == x: 
+    elif (m == y and n == x): 
         return cost[m][n] 
     else: 
         return cost[m][n] + min( minCost(cost, m-1, n-1), 
