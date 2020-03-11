@@ -153,7 +153,7 @@ def run_dijkstra(source_vertex):
   global g_NUM_X_CELLS, g_NUM_Y_CELLS
 
   # Array mapping vertex_index to distance of shortest path from vertex_index to source_vertex.
-  dist = [0] * g_NUM_X_CELLS * g_NUM_Y_CELLS
+  dist = [99] * g_NUM_X_CELLS * g_NUM_Y_CELLS
 
   # Queue for identifying which vertices are up to still be explored:
   # Will contain tuples of (vertex_index, cost), sorted such that the min cost is first to be extracted (explore cheapest/most promising vertices first)
@@ -166,6 +166,33 @@ def run_dijkstra(source_vertex):
   prev = [-1] * g_NUM_X_CELLS*g_NUM_Y_CELLS
 
   # Insert your Dijkstra's code here. Don't forget to initialize Q_cost properly!
+   while (Q_cost):
+
+    cur_vertex = min(Q_cost,key = lambda t: t[1]) #might need to possibly change to first value of a sorted Q_cost
+    #print(cur_vertex)
+    dist[cur_vertex[0]] = cur_vertex[1] 
+    neighbors=[]
+    (cur_x, cur_y) = vertex_index_to_ij(cur_vertex[0])
+    neighbors.append(ij_to_vertex_index(cur_x, cur_y+1))
+    neighbors.append(ij_to_vertex_index(cur_x+1, cur_y))
+    neighbors.append(ij_to_vertex_index(cur_x-1, cur_y))
+    neighbors.append(ij_to_vertex_index(cur_x, cur_y-1))
+    Q_cost.remove(cur_vertex)
+    #print(Q_cost)
+    for i in neighbors:
+      for q in Q_cost:
+        if i == q[0]:
+          #print(i)
+          cost = get_travel_cost(cur_vertex[0], i) + cur_vertex[1]
+          if cost< dist[i]:
+            #print("hello")
+            dist[i]= cost
+            prev[i] = cur_vertex[0]
+
+            Q_cost.remove(q)
+            Q_cost.insert(0,(i,dist[i]))
+   
+  	
 
   # Return results of algorithm run
   return prev
