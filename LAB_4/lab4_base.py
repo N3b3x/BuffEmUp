@@ -197,7 +197,7 @@ def populate_map_from_ping(x_ping, y_ping):
     c_index = ij_to_cell_index(i,j)
 
     if(c_index<len(map_rep)):
-        map_rep[c_index] = 1
+        map_rep[c_index] = 99
 
 
 def display_map():
@@ -223,7 +223,7 @@ def display_map():
             if(c_val == 0):
                 # if value in cell is 0, draw a white filled circle at that point
                 canvas.create_circle(circ_x, circ_y, circle_rad, fill="white", outline="#DDD", width=2)
-            elif(c_val == 1):
+            elif(c_val == 99):
                 # if value in cell is 1, draw a blue filled circle at that point
                 canvas.create_circle(circ_x, circ_y, circle_rad, fill="blue", outline="#DDD", width=2)
 
@@ -254,14 +254,28 @@ def assign_int_to_cell(i,j,val):
     # Assign Value
     cost_map_rep[c_ind] = val
 
+import sys
 # Return cost of traversing from one cell to another
 def cost(cell_index_from, cell_index_to):
     global cost_map_rep
-
+    n,m = cell_index_to_ij(cell_index_to)
+    x,y = cell_index_to_ij(cell_index_from)
+    if (n < 0 or m < 0): 
+        return sys.maxsize 
+    elif (m == y and n == x: 
+        return cost[m][n] 
+    else: 
+        return cost[m][n] + min( minCost(cost, m-1, n-1), 
+                                minCost(cost, m-1, n), 
+                                minCost(cost, m, n-1) ) 
 
     return cost
 
-
+def min(x, y, z): 
+    if (x < y): 
+        return x if (x < z) else z 
+    else: 
+        return y if (y < z) else z 
 
 
 if __name__ == "__main__":
