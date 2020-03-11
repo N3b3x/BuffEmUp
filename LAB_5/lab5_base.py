@@ -124,7 +124,20 @@ def get_travel_cost(vertex_source, vertex_dest):
         vertex_dest corresponds to (i,j) coordinates outside the map
         vertex_source and vertex_dest are not adjacent to each other (i.e., more than 1 move away from each other)
   '''
-
+  SX,SY = vertex_index_to_ij(vertex_source)
+  DX,DY = vertex_index_to_ij(vertex_dest)
+  if(SX > MAP_SIZE_X or SX < 0 or DX > MAP_SIZE_X or DX < 0 or SY > MAP_SIZE_Y or SY < 0 or DY > MAP_SIZE_Y or SY < 0):
+    return 100
+  elif(SX == DX):
+    if(SY == DY -1 or SY == DY +1 ):
+      return 1
+    else:
+      return 1000
+  elif (SY == DY):
+    if(SX == DX -1 or SX == DX +1 ):
+      return 1
+    else:
+      return 1000
   return 100
 
 
