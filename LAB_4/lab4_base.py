@@ -246,6 +246,14 @@ def cell_index_to_ij(cell_index):
     i = cell_index%width_map
     return i, j
 
+# A function that assigns a single integer to each grid cell of your map
+def assign_int_to_cell(i,j,val):
+    global cost_map_rep
+    # Get cell index
+    c_ind = ij_to_cell_index(i,j)
+    # Assign Value
+    cost_map_rep[c_ind] = val
+
 # Return cost of traversing from one cell to another
 def cost(cell_index_from, cell_index_to):
     global cost_map_rep
@@ -253,12 +261,7 @@ def cost(cell_index_from, cell_index_to):
 
     return cost
 
-def assign_int_to_cell(i,j,val):
-    global cost_map_rep
-    # Get cell index
-    c_ind = ij_to_cell_index(i,j)
-    # Assign Value
-    cost_map_rep[c_ind] = val
+
 
 
 if __name__ == "__main__":
