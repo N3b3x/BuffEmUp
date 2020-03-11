@@ -158,7 +158,10 @@ def run_dijkstra(source_vertex):
   # Queue for identifying which vertices are up to still be explored:
   # Will contain tuples of (vertex_index, cost), sorted such that the min cost is first to be extracted (explore cheapest/most promising vertices first)
   Q_cost = []
-
+  totalCells = g_NUM_X_CELLS*g_NUM_Y_CELLS
+  for x in range(totalCells):
+    totCost = get_travel_cost(x, source_vertex)
+    Q_cost.append((x, totCost))
   # Array of ints for storing the next step (vertex_index) on the shortest path back to source_vertex for each vertex in the graph
   prev = [-1] * g_NUM_X_CELLS*g_NUM_Y_CELLS
 
