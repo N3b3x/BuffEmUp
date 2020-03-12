@@ -31,6 +31,9 @@ g_WORLD_MAP = [0] * g_NUM_Y_CELLS*g_NUM_X_CELLS # Initialize graph (grid) as arr
 g_dest_coordinates = (3,3)
 g_src_coordinates = (0,0)
 
+##this is a list to check the spaces around the vertext (N,S,E,W)
+aroundCurrent=[]
+
 
 def create_test_map(map_array):
   # Takes an array representing a map of the world, copies it, and adds simulated obstacles
@@ -140,6 +143,15 @@ def get_travel_cost(vertex_source, vertex_dest):
       return 1000
   return 100
 
+def aroundCurrentVertex(currentX, currentY):
+  global aroundCurrent
+  #Appends the index values to the list 
+  aroundCurrent.append(ij_to_vertex_index(cur_x+1, cur_y)) #North
+  aroundCurrent.append(ij_to_vertex_index(cur_x, cur_y-1)) #South
+  aroundCurrent.append(ij_to_vertex_index(cur_x, cur_y+1)) #East
+  aroundCurrent.append(ij_to_vertex_index(cur_x-1, cur_y)) #West
+  
+
 
 def run_dijkstra(source_vertex):
   '''
@@ -151,6 +163,7 @@ def run_dijkstra(source_vertex):
   Thus, the returned array prev can be treated as a lookup table:  prev[vertex_index] = next vertex index on the path back to source_vertex
   '''
   global g_NUM_X_CELLS, g_NUM_Y_CELLS
+  global aroundCurrent
 
   # Array mapping vertex_index to distance of shortest path from vertex_index to source_vertex.
   dist = [99] * g_NUM_X_CELLS * g_NUM_Y_CELLS
@@ -164,37 +177,40 @@ def run_dijkstra(source_vertex):
     Q_cost.append((x, totCost))
   # Array of ints for storing the next step (vertex_index) on the shortest path back to source_vertex for each vertex in the graph
   prev = [-1] * g_NUM_X_CELLS*g_NUM_Y_CELLS
-
+  #set the source
+  dist[source_vertex] = 0
   # Insert your Dijkstra's code here. Don't forget to initialize Q_cost properly!
    while (Q_cost):
 
-    cur_vertex = min(Q_cost,key = lambda t: t[1]) #might need to possibly change to first value of a sorted Q_cost
-    #print(cur_vertex)
-    dist[cur_vertex[0]] = cur_vertex[1] 
-    neighbors=[]
-    (cur_x, cur_y) = vertex_index_to_ij(cur_vertex[0])
-    neighbors.append(ij_to_vertex_index(cur_x, cur_y+1))
-    neighbors.append(ij_to_vertex_index(cur_x+1, cur_y))
-    neighbors.append(ij_to_vertex_index(cur_x-1, cur_y))
-    neighbors.append(ij_to_vertex_index(cur_x, cur_y-1))
-    Q_cost.remove(cur_vertex)
-    #print(Q_cost)
-    for i in neighbors:
-      for q in Q_cost:
-        if i == q[0]:
-          #print(i)
-          cost = get_travel_cost(cur_vertex[0], i) + cur_vertex[1]
-          if cost< dist[i]:
-            #print("hello")
-            dist[i]= cost
-            prev[i] = cur_vertex[0]
+    #This goes through all of the tuples and checks the second value (cost) to get the minimum costt
+    #currentVertex = (index, cost)
+    currentVertex = min(Q_cost,key = lambda tupleNode: tupleNode[1]) 
+    #Vars for each element of tuple
+    indexVertex = currentVertex[0]
+    costVertex = currentVertex[1]
+    dist[indexVertex] = costVertex #distance to the next vertex is the cost of prev
+    (currentX, currentY) = vertex_index_to_ij(indexVertex)
+    
+    #Want to add the indexs around current to a list, (N,S, E, W)
+    aroundCurrentVertex(currentX,currentY)
+    Q_cost.remove(currentVertex) #removes the tuple from the current index/tuple
+    
 
+    for direction in aroundCurrent:
+      for vertex in Q_cost:
+        if direction == vertex[0]:
+          #Add the current cost we have to the travel cost of the vertex direction you are going
+          cost = get_travel_cost(indexVertex, direction) + costVertex
+          if cost < dist[direction]:
+            dist[direction]= cost #The direction you want to go if the cost is less than current tot
+            prev[direction] = indexVertex #update prev witth cureent node to you can backtrack to source
+
+            #Remove the nodes
             Q_cost.remove(q)
-            Q_cost.insert(0,(i,dist[i]))
+            Q_cost.insert(0,(direction,dist[direction])) # insert the tuple in the 0 index
    
   	
 
-  # Return results of algorithm run
   return prev
 
 
