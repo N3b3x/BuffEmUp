@@ -225,8 +225,27 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
   final_path = []
 
   # TODO: Insert your code here
+  #set a temp holder for source_vertex
+  tempVertex = dest_vertex
 
+  #append the temp to our final path array
+  final_path.append(tempVertex)
 
+  bool vertex = True
+
+  #make sure the tempVertex is not the source vertex
+  if tempVertex != source_vertex:
+        trueVertex = vertex
+        #while its true
+        while trueVertex:
+              #if not == -1
+              if prev[tempVertex] != -1:
+                    #insert 0 in our final path array at the given index
+                    final_path.insert(0, prev[tempVertex])
+                    #set the temp vertex to the prev[vertex]
+                    tempVertex = prev[tempVertex]
+              else: # if prev == -1 return empty list
+                  return []
   return final_path
 
 
