@@ -6,9 +6,11 @@ import copy
 import math
 import random
 import argparse
+import Image
 from PIL import Image
 import numpy as np
 from pprint import pprint
+import numpy
 
 g_CYCLE_TIME = .100
 
@@ -109,7 +111,7 @@ def xy_coordinates_to_ij_coordinates(x,y):
   returns (X, Y) coordinates in meters at the center of grid cell (i,j)
   '''
   global g_MAP_RESOLUTION_X, g_MAP_RESOLUTION_Y
-  return int(i // g_MAP_RESOLUTION_X), int(j // g_MAP_RESOLUTION_Y)
+  return int(x // g_MAP_RESOLUTION_X), int(y // g_MAP_RESOLUTION_Y)
 
 # **********************************
 # *      Core Dijkstra Functions   *
@@ -146,10 +148,10 @@ def get_travel_cost(vertex_source, vertex_dest):
 def aroundCurrentVertex(currentX, currentY):
   global aroundCurrent
   #Appends the index values to the list 
-  aroundCurrent.append(ij_to_vertex_index(cur_x+1, cur_y)) #North
-  aroundCurrent.append(ij_to_vertex_index(cur_x, cur_y-1)) #South
-  aroundCurrent.append(ij_to_vertex_index(cur_x, cur_y+1)) #East
-  aroundCurrent.append(ij_to_vertex_index(cur_x-1, cur_y)) #West
+  aroundCurrent.append(ij_to_vertex_index(currentX+1, currentY)) #North
+  aroundCurrent.append(ij_to_vertex_index(currentX, currentY-1)) #South
+  aroundCurrent.append(ij_to_vertex_index(currentX, currentY+1)) #East
+  aroundCurrent.append(ij_to_vertex_index(currentX-1, currentY)) #West
   
 
 
@@ -180,7 +182,7 @@ def run_dijkstra(source_vertex):
   #set the source
   dist[source_vertex] = 0
   # Insert your Dijkstra's code here. Don't forget to initialize Q_cost properly!
-   while (Q_cost):
+  while (Q_cost):
 
     #This goes through all of the tuples and checks the second value (cost) to get the minimum costt
     #currentVertex = (index, cost)
@@ -206,7 +208,7 @@ def run_dijkstra(source_vertex):
             prev[direction] = indexVertex #update prev witth cureent node to you can backtrack to source
 
             #Remove the nodes
-            Q_cost.remove(q)
+            Q_cost.remove(vertex)
             Q_cost.insert(0,(direction,dist[direction])) # insert the tuple in the 0 index
    
   	
@@ -231,7 +233,7 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
   #append the temp to our final path array
   final_path.append(tempVertex)
 
-  bool vertex = True
+  vertex = True
 
   #make sure the tempVertex is not the source vertex
   if tempVertex != source_vertex:
@@ -249,29 +251,19 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
   return final_path
 
 
-def render_map(map_array):
-  '''
-  TODO-
-    Display the map in the following format:
-    Use " . " for free grid cells
-    Use "[ ]" for occupied grid cells
-
-    Example:
-    For g_WORLD_MAP = [0, 0, 1, 0,
-                       0, 1, 1, 0,
-                       0, 0, 0, 0,
-                       0, 0, 0, 0]
-    There are obstacles at (I,J) coordinates: [ (2,0), (1,1), (2,1) ]
-    The map should render as:
-      .  .  .  .
-      .  .  .  .
-      . [ ][ ] .
-      .  . [ ] .
-
-
-    Make sure to display your map so that I,J coordinate (0,0) is in the bottom left.
-    (To do this, you'll probably want to iterate from row 'J-1' to '0')
-  '''
+def render_map(map_array): 
+  global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP
+  
+  out = [["." for x in range(g_NUM_X_CELLS)] for y in range(g_NUM_Y_CELLS)]
+  for j in range(g_NUM_Y_CELLS):
+        for i in range(g_NUM_X_CELLS):
+            if (g_WORLD_MAP[ij_to_vertex_index(i,j)]== 0):
+                out[i][j]=" . "
+            elif (g_WORLD_MAP[ij_to_vertex_index(i,j)]== 1):
+                out[i][j]="[ ]"
+  out = numpy.transpose(out)
+  print('\n'.join([''.join(['{:2}'.format(item) for item in (rowOut)]) for rowOut in reversed(out)]))
+  print("\n")
   pass
 
 
@@ -279,12 +271,19 @@ def part_1():
   global g_WORLD_MAP
 
   # TODO: Initialize a grid map to use for your test -- you may use create_test_map for this, or manually set one up with obstacles
-
+  test_map = create_test_map(g_WORLD_MAP)
+  g_WORLD_MAP = test_map
 
   # Use render_map to render your initialized obstacle map
+  print("starting vertex: " ,g_src_coordinates)
+  print("destination vertex: " ,g_dest_coordinates)
 
+  render_map(test_map)
   # TODO: Find a path from the (I,J) coordinate pair in g_src_coordinates to the one in g_dest_coordinates using run_dijkstra and reconstruct_path
-
+  prev = run_dijkstra(ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]))
+  
+  path = reconstruct_path(prev, ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]), ij_to_vertex_index(g_dest_coordinates[0],g_dest_coordinates[1]))
+  
   '''
   TODO-
     Display the final path in the following format:
@@ -292,7 +291,10 @@ def part_1():
     Goal: (3,1)
     0 -> 1 -> 2 -> 6 -> 7
   '''
-
+  for i in range(0, len(path)): 
+    path[i] = str(path[i]) 
+  
+  print("path: "," -> ".join(path))
 
 def part_2(args):
   global g_dest_coordinates
@@ -304,6 +306,7 @@ def part_2(args):
 
   # pixel_grid has intensity values for all the pixels
   # You will have to convert it to the earlier 0 and 1 matrix yourself
+  
   pixel_grid = _load_img_to_intensity_matrix(args.obstacles)
 
   '''
