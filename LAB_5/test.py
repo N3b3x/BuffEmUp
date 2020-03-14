@@ -33,6 +33,7 @@ g_dest_coordinates = (3,3)
 g_src_coordinates = (0,0)
 
 ##this is a list to check the spaces around the vertext (N,S,E,W)
+aroundCurrent=[]
 g_Num_Cells = 0
 
 def create_test_map(map_array):
@@ -133,21 +134,37 @@ def get_travel_cost(vertex_source, vertex_dest):
   (x_dest,y_dest) = vertex_index_to_ij(vertex_dest)
   
   #vertex_source and vertex_dest are neighbors in a 4-connected grid (i.e., N,E,S,W of each other but not diagonal) and neither is occupied in g_WORLD_MAP (i.e., g_WORLD_MAP isn't 1 for either)
-  if g_WORLD_MAP[vertex_dest]==1 or g_WORLD_MAP[vertex_source]==1:  
+  #print (g_WORLD_MAP)
+  if g_WORLD_MAP[vertex_dest]==1 or g_WORLD_MAP[vertex_source]==1:
+      #print(1000)
       return 1000
   if vertex_source == vertex_dest:
+      # print(0)
       return 0
   if vertex_source < len(g_WORLD_MAP) and vertex_dest < len(g_WORLD_MAP):
     start_i, start_j = vertex_index_to_ij(vertex_source)
     dest_i, dest_j = vertex_index_to_ij(vertex_dest)
     manDist = abs(start_i - dest_i) + abs(start_j - dest_j)
     if manDist == 1 and g_WORLD_MAP[vertex_source] != 1 and g_WORLD_MAP[vertex_dest] != 1:
+      # print(1)
       return 1
-  return 100
+
+    return 100
+
+def aroundCurrentVertex(currentX, currentY):
+  global aroundCurrent
+  #Appends the index values to the list
+  aroundCurrent = []
+  aroundCurrent.append(ij_to_vertex_index(currentX+1, currentY)) #North
+  aroundCurrent.append(ij_to_vertex_index(currentX, currentY-1)) #South
+  aroundCurrent.append(ij_to_vertex_index(currentX, currentY+1)) #East
+  aroundCurrent.append(ij_to_vertex_index(currentX-1, currentY)) #West
+  
 
 
 def run_dijkstra(source_vertex):
     global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_Num_Cells
+    global aroundCurrent
     g_Num_Cells = g_NUM_X_CELLS * g_NUM_Y_CELLS
     # Array mapping vertex_index to distance of shortest path from vertex_index to source_vertex.
     dist = [99] * g_NUM_X_CELLS * g_NUM_Y_CELLS
@@ -157,7 +174,9 @@ def run_dijkstra(source_vertex):
     Q_cost = {}
     for i in range(g_Num_Cells):
          Q_cost[i] = 2000
-  
+
+
+
     # Array of ints for storing the next step (vertex_index) on the shortest path back to source_vertex for each vertex in the graph
     prev = [-1] * g_NUM_X_CELLS*g_NUM_Y_CELLS
     #set the source
@@ -170,8 +189,6 @@ def run_dijkstra(source_vertex):
         Around = []
         North = currentVertexIndex - 4
         Q_cost.pop(currentVertexIndex, None)
-
-        ## Getting the Neighbors
         if(North >= 0 and North <= g_Num_Cells-1):
             Around.append(North)
         East = currentVertexIndex +1
@@ -248,6 +265,17 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
 
 def render_map(map_array): 
     global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP
+  
+#   out = [["." for x in range(g_NUM_X_CELLS)] for y in range(g_NUM_Y_CELLS)]
+#   for j in range(g_NUM_Y_CELLS):
+#         for i in range(g_NUM_X_CELLS):
+#             if (g_WORLD_MAP[ij_to_vertex_index(i,j)]== 0):
+#                 out[i][j]=" . "
+#             elif (g_WORLD_MAP[ij_to_vertex_index(i,j)]== 1):
+#                 out[i][j]="[ ]"
+#   out = numpy.transpose(out)
+#   print('\n'.join([''.join(['{:2}'.format(item) for item in (rowOut)]) for rowOut in reversed(out)]))
+#   print("\n")
     i = 0
     ## First Line
     string  = ""
