@@ -62,13 +62,14 @@ def _load_img_to_intensity_matrix(img_filename):
 
   MAP_SIZE_X = img.width
   MAP_SIZE_Y = img.height
+  #print(MAP_SIZE_X, MAP_SIZE_Y)
 
   grid = np.zeros([img.height, img.width])
   for y in range(img.height):
       for x in range(img.width):
           pixel = img.getpixel((x,y))
           grid[y,x] = 255 - pixel[0] # Dark pixels have high values to indicate being occupied/having something interesting
-
+          
   return grid
 
 
@@ -238,9 +239,25 @@ def render_map(map_array):
         y_count +=1
         string = ""
       i += 1 
-    
     pass
 
+def render_map2(map_array): 
+    global MAP_SIZE_X, MAP_SIZE_Y, g_WORLD_MAP
+    i = 0
+    y_count = 1
+    
+    string = ""
+    while(i < len(map_array)):
+      if(map_array[i] == 1):
+            string = string+"[]"
+      else:
+          string = string + "."
+      if i == (MAP_SIZE_X*y_count)-1:
+        print (string,"\n")
+        y_count +=1
+        string = ""
+      i += 1 
+    pass
 
 def part_1():
   global g_WORLD_MAP
@@ -306,6 +323,11 @@ def part_2(args):
   #print(len(pixel_grid)*len(pixel_grid[0]))
   #print(len(g_WORLD_MAP))
   #print(g_WORLD_MAP)
+  render_map2(g_WORLD_MAP)
+  #prev = run_dijkstra(ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]))
+  #print(prev)
+  #path = reconstruct_path(prev, ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]), ij_to_vertex_index(g_dest_coordinates[0],g_dest_coordinates[1]))
+  #print(path)
 
 
 
