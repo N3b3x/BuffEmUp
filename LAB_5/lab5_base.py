@@ -169,7 +169,7 @@ def run_dijkstra(source_vertex):
         #currentVertex = min(Q_cost,key = lambda t: abs(t[1])) #might need to possibly change to first value of a sorted Q_cost
         currentVertexIndex = min(Q_cost, key=Q_cost.get)
         Around = []
-        North = currentVertexIndex - 4
+        North = currentVertexIndex - g_NUM_X_CELLS
         Q_cost.pop(currentVertexIndex, None)
 
         ## Getting the Neighbors
@@ -179,7 +179,7 @@ def run_dijkstra(source_vertex):
         if(East >= 0 and East <= g_Num_Cells-1):
             Around.append(East)
 
-        South = currentVertexIndex +4
+        South = currentVertexIndex + g_NUM_X_CELLS
         if(South >= 0 and South <= g_Num_Cells-1):
             Around.append(South)
 
@@ -340,5 +340,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
 
-  #part_1()
-  part_2(args)
+  part_1()
+  #part_2(args)
