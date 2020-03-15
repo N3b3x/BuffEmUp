@@ -8,7 +8,7 @@ import random
 import argparse
 from PIL import Image
 from pprint import pprint
-import numpy
+import numpy as np
 
 
 g_CYCLE_TIME = .100
@@ -206,30 +206,7 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
   path from dest to source, return an empty list.
   '''
 
-  # TODO: Insert your code here
-  #set a temp holder for source_vertex
-  # tempVertex = dest_vertex
-
-  # #append the temp to our final path array
-  # final_path.append(tempVertex)
-
-  # vertex = True
-
-  # #make sure the tempVertex is not the source vertex
-  # if tempVertex != source_vertex:
-  #       trueVertex = vertex
-  #       #while its true
-  #       while trueVertex:
-  #             #if not == -1
-  #             if prev[tempVertex] != -1:
-  #                   #insert 0 in our final path array at the given index
-  #                   final_path.insert(0, prev[tempVertex])
-  #                   #set the temp vertex to the prev[vertex]
-  #                   tempVertex = prev[tempVertex]
-  #             else: # if prev == -1 return empty list
-  #                 return []
-
-
+  # TODO: Insert your code herex
 
   final_path = []
 	
@@ -249,45 +226,19 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
 def render_map(map_array): 
     global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP
     i = 0
-    ## First Line
-    string  = ""
-    while (i < 4):
-        if(map_array[i] == 1):
+    y_count = 1
+    string = ""
+    while(i < len(map_array)):
+      if(map_array[i] == 1):
             string = string+" [] "
-        else:
-            string = string + " . "
-        i = i +1 
-    print (string,"\n")
-    ## Line 2
-    string  = ""
-    while (i < 8):
-        
-        if(map_array[i] == 1):
-            string = string+" [] "
-        else:
-            string = string + " . "
-        i = i +1 
-    print (string,"\n")
-    ## line 3 
-    string  = ""
-    while (i < 12): 
-        
-        if(map_array[i] == 1):
-            string = string+" [] "
-        else:
-            string = string + " . "
-        i = i +1 
-    print (string,"\n")
-   ##line 4
-    string  = ""
-    while (i < 16):
-        
-        if(map_array[i] == 1):
-            string = string+" [] "
-        else:
-            string = string + " . "
-        i = i +1 
-    print (string,"\n")
+      else:
+          string = string + " . "
+      if i == (g_NUM_X_CELLS*y_count)-1:
+        print (string,"\n")
+        y_count +=1
+        string = ""
+      i += 1 
+    
     pass
 
 
@@ -332,7 +283,7 @@ def part_2(args):
   # You will have to convert it to the earlier 0 and 1 matrix yourself
   
   pixel_grid = _load_img_to_intensity_matrix(args.obstacles)
-
+        
   '''
   TODO -
   1) Compute the g_WORLD_MAP -- depending on the resolution, you need to decide if your cell is an obstacle cell or a free cell.
@@ -342,6 +293,19 @@ def part_2(args):
   '''
 
   #### Your code goes here ####
+  
+  #turning all the values to 1 if they have some sort of intesity
+  g_WORLD_MAP = []
+  for index in pixel_grid:
+    for index2 in range(len(index)):
+      if index[index2] != 0:
+        g_WORLD_MAP.append(1)
+      else:
+        g_WORLD_MAP.append(0)
+        
+  #print(len(pixel_grid)*len(pixel_grid[0]))
+  #print(len(g_WORLD_MAP))
+  #print(g_WORLD_MAP)
 
 
 
@@ -354,5 +318,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
 
-  part_1()
-  # part_2(args)
+  #part_1()
+  part_2(args)
