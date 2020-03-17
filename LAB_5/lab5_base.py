@@ -178,6 +178,7 @@ def run_dijkstra(source_vertex):
         currentVertexIndex = min(Q_cost, key=Q_cost.get)
         Around = []
         North = currentVertexIndex - g_NUM_X_CELLS
+        #print("QCost:", Q_cost)
         Q_cost.pop(currentVertexIndex, None)
 
         ## Getting the Neighbors
@@ -285,9 +286,9 @@ def part_1():
   render_map(test_map)
   # TODO: Find a path from the (I,J) coordinate pair in g_src_coordinates to the one in g_dest_coordinates using run_dijkstra and reconstruct_path
   prev = run_dijkstra(ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]))
-  print(prev)
+  print("prev:", prev)
   path = reconstruct_path(prev, ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]), ij_to_vertex_index(g_dest_coordinates[0],g_dest_coordinates[1]))
-  print(path)
+  #print(path)
   '''
   TODO-
     Display the final path in the following format:
@@ -337,15 +338,6 @@ def part_2(args):
   '''
 
   #### Your code goes here ####
-  
-  #turning all the values to 1 if they have some sort of intesity
-  # g_WORLD_MAP = []
-  # for index in pixel_grid:
-  #   for index2 in range(len(index)):
-  #     if index[index2] != 0:
-  #       g_WORLD_MAP.append(1)
-  #     else:
-  #       g_WORLD_MAP.append(0)
 
   g_WORLD_MAP = []
   for i in range(0,len(pixel_grid)-1,4):
@@ -387,5 +379,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
 
-  part_1()
+ # part_1()
   part_2(args)
