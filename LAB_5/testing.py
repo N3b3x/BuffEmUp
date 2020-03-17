@@ -32,7 +32,7 @@ g_WORLD_MAP = [0] * g_NUM_Y_CELLS*g_NUM_X_CELLS # Initialize graph (grid) as arr
 g_dest_coordinates = (3,3)
 g_src_coordinates = (0,0)
 
-##this is a list to check the spaces around the vertext (N,S,E,W)
+#How Many Cells are in map
 g_Num_Cells = 0
 
 def create_test_map(map_array):
@@ -43,7 +43,6 @@ def create_test_map(map_array):
   for i in range(int(math.sqrt(len(map_array)))):
     random_cell = random.randint(0, num_cells)
     new_map[random_cell] = 1
-
   return new_map
 
 
@@ -79,7 +78,9 @@ def vertex_index_to_ij(vertex_index):
   Returns COL, ROW coordinates in 2D grid
   '''
   global g_NUM_X_CELLS
-  return vertex_index % g_NUM_X_CELLS, vertex_index // g_NUM_X_CELLS
+  i = vertex_index % g_NUM_X_CELLS
+  j = vertex_index // g_NUM_Y_CELLS
+  return i, j
 
 def ij_to_vertex_index(i,j):
   '''
@@ -128,21 +129,28 @@ def get_travel_cost(vertex_source, vertex_dest):
         vertex_dest corresponds to (i,j) coordinates outside the map
         vertex_source and vertex_dest are not adjacent to each other (i.e., more than 1 move away from each other)
   '''
-  global g_NUM_Y_CELLS, g_NUM_X_CELLS, g_WORLD_MAP  # Number of columns in the grid map 
+  global g_NUM_Y_CELLS, g_NUM_X_CELLS, g_WORLD_MAP,g_NUM_X_CELLS  # Number of columns in the grid map 
 
-  (x_source,y_source) = vertex_index_to_ij(vertex_source)
-  (x_dest,y_dest) = vertex_index_to_ij(vertex_dest)
+  (i_source,j_source) = vertex_index_to_ij(vertex_source)
+  (i_dest,j_dest) = vertex_index_to_ij(vertex_dest)
   
+  
+  
+
+
   #vertex_source and vertex_dest are neighbors in a 4-connected grid (i.e., N,E,S,W of each other but not diagonal) and neither is occupied in g_WORLD_MAP (i.e., g_WORLD_MAP isn't 1 for either)
   if g_WORLD_MAP[vertex_dest]==1 or g_WORLD_MAP[vertex_source]==1:  
       return 1000
   if vertex_source == vertex_dest:
       return 0
   if vertex_source < len(g_WORLD_MAP) and vertex_dest < len(g_WORLD_MAP):
-    start_i, start_j = vertex_index_to_ij(vertex_source)
-    dest_i, dest_j = vertex_index_to_ij(vertex_dest)
-    manDist = abs(start_i - dest_i) + abs(start_j - dest_j)
-    if manDist == 1 and g_WORLD_MAP[vertex_source] != 1 and g_WORLD_MAP[vertex_dest] != 1:
+    if(vertex_dest == vertex_source + g_NUM_X_CELLS ):
+      return 1
+    if(vertex_dest == vertex_source - g_NUM_X_CELLS ):
+      return 1
+    if(vertex_dest == vertex_source + 1 ):
+      return 1
+    if(vertex_dest == vertex_source - 1 ):
       return 1
   return 100
 
@@ -166,7 +174,7 @@ def run_dijkstra(source_vertex):
     Q_cost[source_vertex] = 0
     # Insert your Dijkstra's code here. Don't forget to initialize Q_cost properly!
     while (Q_cost):
-        #currentVertex = min(Q_cost,key = lambda t: abs(t[1])) #might need to possibly change to first value of a sorted Q_cost
+    
         currentVertexIndex = min(Q_cost, key=Q_cost.get)
         Around = []
         North = currentVertexIndex - g_NUM_X_CELLS
@@ -196,8 +204,10 @@ def run_dijkstra(source_vertex):
                 prev[i] = currentVertexIndex
                 Q_cost[i] = get_travel_cost(currentVertexIndex,i)
     return prev
+    
 def run_dijkstra2(source_vertex):
     global MAP_SIZE_X, MAP_SIZE_Y, g_Num_Cells
+    print(MAP_SIZE_Y)
     g_Num_Cells = MAP_SIZE_X*MAP_SIZE_Y
     # Array mapping vertex_index to distance of shortest path from vertex_index to source_vertex.
     dist = [99] * MAP_SIZE_X*MAP_SIZE_Y
@@ -263,11 +273,11 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
   vertex = dest_vertex
   final_path.append(dest_vertex)
   while vertex != source_vertex:
-    if prev[vertex] == -1:
+    if prev[int(vertex)] == -1:
       print("no path available")
       return []
-    final_path.insert(0,prev[vertex])
-    vertex = prev[vertex]
+    final_path.insert(0,prev[int(vertex)])
+    vertex = prev[int(vertex)]
 
   
   return final_path
@@ -294,7 +304,8 @@ def render_map2(map_array):
     global MAP_SIZE_X, MAP_SIZE_Y, g_WORLD_MAP
     i = 0
     y_count = 1
-    
+    MAP_SIZE_X = 120
+    MAP_SIZE_Y = 180
     string = ""
     while(i < len(map_array)):
       if(map_array[i] == 1):
@@ -338,13 +349,26 @@ def part_1():
   print("path: "," -> ".join(path))
 
 def part_2(args):
-  global g_dest_coordinates
+  global g_dest_coordinates,g_MAP_SIZE_X,g_MAP_SIZE_Y,g_MAP_RESOLUTION_X,g_MAP_RESOLUTION_Y,g_NUM_X_CELLS,g_NUM_Y_CELLS
   global g_src_coordinates
   global g_WORLD_MAP
 
-  g_src_coordinates = (round(float(args.src_coordinates[0])), round(float(args.src_coordinates[1])))
-  g_dest_coordinates = (round(float(args.dest_coordinates[0])), round(float(args.dest_coordinates[1])))
 
+
+  g_MAP_SIZE_X = 1.2 # 2m wide
+  g_MAP_SIZE_Y = 1.8 # 1.5m tall
+  g_MAP_RESOLUTION_X = 0.01 # Each col represents 50cm
+  g_MAP_RESOLUTION_Y = 0.01 # Each row represents 37.5cm
+  g_NUM_X_CELLS = int(g_MAP_SIZE_X // g_MAP_RESOLUTION_X) # Number of columns in the grid map
+  g_NUM_Y_CELLS = int(g_MAP_SIZE_Y // g_MAP_RESOLUTION_Y) # Number of rows in the grid map
+  g_NUM_X_CELLS = g_NUM_X_CELLS +1
+
+
+
+
+  g_src_coordinates = (float(args.src_coordinates[0]), float(args.src_coordinates[1]))
+  g_dest_coordinates = (float(args.dest_coordinates[0]), float(args.dest_coordinates[1]))
+  g_MAP_RESOLUTION_X
   # pixel_grid has intensity values for all the pixels
   # You will have to convert it to the earlier 0 and 1 matrix yourself
   
@@ -361,22 +385,35 @@ def part_2(args):
   #### Your code goes here ####
   
   #turning all the values to 1 if they have some sort of intesity
+  # g_WORLD_MAP = []
+  # for index in pixel_grid:
+  #   for index2 in range(len(index)):
+  #     if index[index2] != 0:
+  #       g_WORLD_MAP.append(1)
+  #     else:
+  #       g_WORLD_MAP.append(0)
+
   g_WORLD_MAP = []
-  for index in pixel_grid:
-    for index2 in range(len(index)):
-      if index[index2] != 0:
+  for i in range(0,len(pixel_grid)-1,4):
+    for j in range(0,len(pixel_grid[i]),10):
+      if pixel_grid[i][j] != 0:
         g_WORLD_MAP.append(1)
       else:
-        g_WORLD_MAP.append(0)
-        
+         g_WORLD_MAP.append(0)
+  
+
+
+
   #print(len(pixel_grid)*len(pixel_grid[0]))
   #print(len(g_WORLD_MAP))
   #print(g_WORLD_MAP)
-  #render_map2(g_WORLD_MAP)
-  prev = run_dijkstra2(ij_to_vertex_index(int(g_src_coordinates[0]),int(g_src_coordinates[1])))
+  render_map2(g_WORLD_MAP)
+
+  cord = ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100))
+  prev = run_dijkstra2(cord)
   print(prev)
-  #path = reconstruct_path(prev, ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]), ij_to_vertex_index(g_dest_coordinates[0],g_dest_coordinates[1]))
-  #print(path)
+  path = reconstruct_path(prev, ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100)), ij_to_vertex_index(int(g_dest_coordinates[0]*100),int(g_dest_coordinates[1]*100)))
+  print(path)
 
 
 
@@ -389,5 +426,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
 
-  #part_1()
+  part_1()
   part_2(args)
