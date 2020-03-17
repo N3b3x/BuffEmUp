@@ -346,14 +346,6 @@ def part_2(args):
         g_WORLD_MAP.append(1)
       else:
          g_WORLD_MAP.append(0)
-  
-
-
-
-  #print(len(pixel_grid)*len(pixel_grid[0]))
-  #print(len(g_WORLD_MAP))
-  #print(g_WORLD_MAP)
-  
 
   cord = ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100))
   prev = run_dijkstra(cord)
@@ -379,5 +371,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
 
- # part_1()
+  part_1()
   part_2(args)
