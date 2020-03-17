@@ -204,57 +204,7 @@ def run_dijkstra(source_vertex):
                 prev[i] = currentVertexIndex
                 Q_cost[i] = get_travel_cost(currentVertexIndex,i)
     return prev
-    
-def run_dijkstra2(source_vertex):
-    global MAP_SIZE_X, MAP_SIZE_Y, g_Num_Cells
-    print(MAP_SIZE_Y)
-    g_Num_Cells = MAP_SIZE_X*MAP_SIZE_Y
-    # Array mapping vertex_index to distance of shortest path from vertex_index to source_vertex.
-    dist = [99] * MAP_SIZE_X*MAP_SIZE_Y
 
-    # Queue for identifying which vertices are up to still be explored:
-    # Will contain tuples of (vertex_index, cost), sorted such that the min cost is first to be extracted (explore cheapest/most promising vertices first)
-    Q_cost = {}
-    for i in range(g_Num_Cells):
-         Q_cost[i] = 2000
-  
-    # Array of ints for storing the next step (vertex_index) on the shortest path back to source_vertex for each vertex in the graph
-    prev = [-1] * MAP_SIZE_X*MAP_SIZE_Y
-    #set the source
-    dist[source_vertex] = 0
-    Q_cost[source_vertex] = 0
-    # Insert your Dijkstra's code here. Don't forget to initialize Q_cost properly!
-    while (Q_cost):
-        #currentVertex = min(Q_cost,key = lambda t: abs(t[1])) #might need to possibly change to first value of a sorted Q_cost
-        currentVertexIndex = min(Q_cost, key=Q_cost.get)
-        Around = []
-        North = currentVertexIndex - MAP_SIZE_X
-        Q_cost.pop(currentVertexIndex, None)
-
-        ## Getting the Neighbors
-        if(North >= 0 and North <= g_Num_Cells-1):
-            Around.append(North)
-        East = currentVertexIndex +1
-        if(East >= 0 and East <= g_Num_Cells-1):
-            Around.append(East)
-
-        South = currentVertexIndex + MAP_SIZE_X
-        if(South >= 0 and South <= g_Num_Cells-1):
-            Around.append(South)
-
-        West = currentVertexIndex - 1 
-        if(West >= 0 and West <= g_Num_Cells-1):
-            Around.append(West)
-
-        for i in Around:
-            alt1 = get_travel_cost(currentVertexIndex,i)
-            alt2 = dist[currentVertexIndex]
-            alt = alt1 + alt2
-            if alt < dist[i]:
-                dist[i] = alt
-                prev[i] = currentVertexIndex
-                Q_cost[i] = get_travel_cost(currentVertexIndex,i)
-    return prev
 
 
 def reconstruct_path(prev, source_vertex, dest_vertex):
@@ -300,24 +250,6 @@ def render_map(map_array):
       i += 1 
     pass
 
-def render_map2(map_array): 
-    global MAP_SIZE_X, MAP_SIZE_Y, g_WORLD_MAP
-    i = 0
-    y_count = 1
-    MAP_SIZE_X = 120
-    MAP_SIZE_Y = 180
-    string = ""
-    while(i < len(map_array)):
-      if(map_array[i] == 1):
-            string = string+"[]"
-      else:
-          string = string + "."
-      if i == (MAP_SIZE_X*y_count)-1:
-        print (string,"\n")
-        y_count +=1
-        string = ""
-      i += 1 
-    pass
 
 def part_1():
   global g_WORLD_MAP
@@ -350,7 +282,7 @@ def part_1():
 
 def part_2(args):
   global g_dest_coordinates,g_MAP_SIZE_X,g_MAP_SIZE_Y,g_MAP_RESOLUTION_X,g_MAP_RESOLUTION_Y,g_NUM_X_CELLS,g_NUM_Y_CELLS
-  global g_src_coordinates
+  global g_src_coordinates,MAP_SIZE_X,MAP_SIZE_Y
   global g_WORLD_MAP
 
 
@@ -362,6 +294,8 @@ def part_2(args):
   g_NUM_X_CELLS = int(g_MAP_SIZE_X // g_MAP_RESOLUTION_X) # Number of columns in the grid map
   g_NUM_Y_CELLS = int(g_MAP_SIZE_Y // g_MAP_RESOLUTION_Y) # Number of rows in the grid map
   g_NUM_X_CELLS = g_NUM_X_CELLS +1
+  MAP_SIZE_X = 120
+  MAP_SIZE_Y = 180
 
 
 
@@ -407,10 +341,10 @@ def part_2(args):
   #print(len(pixel_grid)*len(pixel_grid[0]))
   #print(len(g_WORLD_MAP))
   #print(g_WORLD_MAP)
-  render_map2(g_WORLD_MAP)
+  render_map(g_WORLD_MAP)
 
   cord = ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100))
-  prev = run_dijkstra2(cord)
+  prev = run_dijkstra(cord)
   print(prev)
   path = reconstruct_path(prev, ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100)), ij_to_vertex_index(int(g_dest_coordinates[0]*100),int(g_dest_coordinates[1]*100)))
   print(path)
