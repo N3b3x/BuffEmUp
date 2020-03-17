@@ -240,9 +240,9 @@ def render_map(map_array):
     string = ""
     while(i < len(map_array)):
       if(map_array[i] == 1):
-            string = string+" [] "
+            string = string+"|"
       else:
-          string = string + " . "
+          string = string + "."
       if i == (g_NUM_X_CELLS*y_count)-1:
         print (string,"\n")
         y_count +=1
