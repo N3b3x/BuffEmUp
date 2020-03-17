@@ -250,6 +250,26 @@ def render_map(map_array):
       i += 1 
     pass
 
+def render_map2(map_array, path): 
+    global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP
+    i = 0
+    y_count = 1
+    string = ""
+    while(i < len(map_array)):
+      if(map_array[i] == 1):
+        string = string+"|"
+      else:
+        if i in path:
+          string = string + 'X'
+        else:
+          string = string + "."
+      if i == (g_NUM_X_CELLS*y_count)-1:
+        print (string,"\n")
+        y_count +=1
+        string = ""
+      i += 1 
+    pass
+
 
 def part_1():
   global g_WORLD_MAP
@@ -341,13 +361,20 @@ def part_2(args):
   #print(len(pixel_grid)*len(pixel_grid[0]))
   #print(len(g_WORLD_MAP))
   #print(g_WORLD_MAP)
-  render_map(g_WORLD_MAP)
+  
 
   cord = ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100))
   prev = run_dijkstra(cord)
-  print(prev)
+  #print(prev)
   path = reconstruct_path(prev, ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100)), ij_to_vertex_index(int(g_dest_coordinates[0]*100),int(g_dest_coordinates[1]*100)))
-  print(path)
+  #print(path)
+  render_map2(g_WORLD_MAP, path)
+  for i in range(0, len(path)): 
+    path[i] = str(path[i]) 
+  
+  print("path: "," -> ".join(path))
+
+
 
 
 
