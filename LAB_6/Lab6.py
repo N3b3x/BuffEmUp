@@ -78,7 +78,7 @@ CYCLE_TIME = 0.5 # In seconds
 
 ########################## PART 5 GLOBALS ############################
 g_CYCLE_TIME = .100
-
+path = []
 # Parameters you might need to use which will be set automatically
 MAP_SIZE_X = None
 MAP_SIZE_Y = None
@@ -102,23 +102,6 @@ g_src_coordinates = (0,0)
 g_Num_Cells = 0
 
 ######################################################################
-
-
-
-###########PROBALY NOT NEEEDED ########################
-def create_test_map(map_array):
-  # Takes an array representing a map of the world, copies it, and adds simulated obstacles
-  num_cells = len(map_array)
-  new_map = copy.copy(map_array)
-  # Add obstacles to up to sqrt(n) vertices of the map
-  for i in range(int(math.sqrt(len(map_array)))):
-    random_cell = random.randint(0, num_cells)
-    new_map[random_cell] = 1
-  return new_map
-
-
-###################################################
-
 
 
 
@@ -323,26 +306,6 @@ def render_map(map_array):
       i += 1 
     pass
 
-def render_map2(map_array, path): 
-    global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP
-    i = 0
-    y_count = 1
-    string = ""
-    while(i < len(map_array)):
-      if(map_array[i] == 1):
-        string = string+"|"
-      else:
-        if i in path:
-          string = string + 'X'
-        else:
-          string = string + "."
-      if i == (g_NUM_X_CELLS*y_count)-1:
-        print (string,"\n")
-        y_count +=1
-        string = ""
-      i += 1 
-    pass
-
 def part_2(args):
   global g_dest_coordinates,g_MAP_SIZE_X,g_MAP_SIZE_Y,g_MAP_RESOLUTION_X,g_MAP_RESOLUTION_Y,g_NUM_X_CELLS,g_NUM_Y_CELLS
   global g_src_coordinates,MAP_SIZE_X,MAP_SIZE_Y
@@ -394,18 +357,66 @@ def part_2(args):
   #print(prev)
   path = reconstruct_path(prev, ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100)), ij_to_vertex_index(int(g_dest_coordinates[0]*100),int(g_dest_coordinates[1]*100)))
   #print(path)
-  render_map2(g_WORLD_MAP, path)
+  render_map(g_WORLD_MAP, path)
   for i in range(0, len(path)): 
     path[i] = str(path[i]) 
   
   print("path: "," -> ".join(path))
 
+def GetGoals(path):
+    Goals = []
+    while(path):
+        current = []
+        current.append(path[0])
+        south = False
+        north = False
+        east = False
+        west = False
+        if(path[1] == path[0] - g_NUM_X_CELLS ):
+            north = True
+        if(path[1] == path[0] + g_NUM_X_CELLS ):
+            south = True
+        if(path[1] == path[0] - 1 ):
+            east = True
+        if(path[1] == path[0] + 1 ):
+            west = True
+     
+        path.pop(0)
 
+        if (north == true and path[1] == path[0]-g_NUM_X_CELLS):
+            path.pop(0)
+        else:
+            current.append(path[0])
+            Goals.append(current)
+            current = []
 
-def init():
+        if (south == true and path[1] == path[0]+g_NUM_X_CELLS):
+            path.pop(0)
+        else:
+            current.append(path[0])
+            Goals.append(current)
+            current = []
+
+        if (east == true and path[1] == path[0]+1):
+                    path.pop(0)
+                else:
+                    current.append(path[0])
+                    Goals.append(current)
+                    current = []
+        if (south == true and path[1] == path[0]+g_NUM_X_CELLS):
+            path.pop(0)
+        else:
+            current.append(path[0])
+            Goals.append(current)
+                current = []
+    return Goals
+            
+
+def init(args):
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom, publisher_render
     global subscriber_odometry, subscriber_state
-    global pose2d_sparki_odometry,map_rep, servo_rad
+    global pose2d_sparki_odometry,map_rep, servo_rad,g_WORLD_MAP,path
+
     # Set up your publishers and subscribers
     # Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     rospy.init_node('buffemup')
@@ -421,8 +432,20 @@ def init():
     # Set sparki's servo to an angle pointing inward to the map (e.g., 45)
     publisher_servo.publish(servo_deg)
     publisher_render.publish(Empty())
-    #print("Did Init")
-    #print(map_rep)
+    ###### NEW STUFF ######################
+    pixel_grid = _load_img_to_intensity_matrix(args.obstacles)
+    g_WORLD_MAP = []
+    for i in range(0,len(pixel_grid)-1,4):
+        for j in range(0,len(pixel_grid[i]),10):
+            if pixel_grid[i][j] != 0:
+                g_WORLD_MAP.append(1)
+            else:
+                g_WORLD_MAP.append(0)
+
+    cord = ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100))
+    prev = run_dijkstra(cord)
+    path = reconstruct_path(prev, ij_to_vertex_index(int(g_src_coordinates[0]*100),int(g_src_coordinates[1]*100)), ij_to_vertex_index(int(g_dest_coordinates[0]*100),int(g_dest_coordinates[1]*100)))
+    
 
 def Main():
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom, ir_sensor_read
