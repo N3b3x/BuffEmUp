@@ -9,8 +9,74 @@ import argparse
 from PIL import Image
 from pprint import pprint
 import numpy as np
+import math
+import sys
+import rospy
+import json
+import copy
+import time
+from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Float32MultiArray, Empty, String, Int16
+
+# FOR VISUALS
+if sys.version_info[0] == 2:
+  import Tkinter as tk # Python 2
+else:
+  import tkinter as tk # Python 3 [Use "sudo apt-get install python3-tk" to get tkinter]
+
+# Create GUI
+r = tk.Tk() 
+r.title('World Map') 
+canvas_width = 1200
+canvas_height = 800
+canvas = tk.Canvas(r,width=canvas_width,height=canvas_height)
+canvas.pack()
+
+def _create_circle(self, x, y, r, **kwargs):
+    return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
+tk.Canvas.create_circle = _create_circle
+###### PART 4 GLOBALS
 
 
+
+
+# GLOBALS 
+pose2d_sparki_odometry = Pose2D(0,0,0) #Pose2D message object, contains x,y,theta members in meters and radians
+
+# Track servo angle in radians
+servo_deg = 80
+servo_rad = math.radians(servo_deg)
+
+# Track IR sensor readings (there are five readings in the array: we've been using indices 1,2,3 for left/center/right)
+ir_sensor_read = [0 for i in range(5)]
+
+# Create data structure to hold map representation
+# Map is 180 cm wide by 120 cm height thus an array of 60 wide and 40 height would give us a nice square map cell size of 0.03 m
+map_cell_size = 0.03    # [m]
+width_map = 60          
+height_map = 40
+max_map_dist = math.sqrt(width_map**2 + height_map**2)
+map_rep = [0 for x in range(height_map * width_map)]
+cost_map_rep = [0 for x in range(height_map * width_map)]
+
+# Use these variables to hold your publishers and subscribers
+publisher_motor = None
+publisher_odom = None
+publisher_ping = None
+publisher_servo = None
+subscriber_odometry = None
+subscriber_state = None
+publisher_render = None
+
+# CONSTANTS 
+IR_THRESHOLD = 300 # IR sensor threshold for detecting black track. Change as necessary.
+CYCLE_TIME = 0.5 # In seconds
+
+
+
+########################
+
+########################## PART 5 GLOBALS ############################
 g_CYCLE_TIME = .100
 
 # Parameters you might need to use which will be set automatically
@@ -35,6 +101,11 @@ g_src_coordinates = (0,0)
 #How Many Cells are in map
 g_Num_Cells = 0
 
+######################################################################
+
+
+
+###########PROBALY NOT NEEEDED ########################
 def create_test_map(map_array):
   # Takes an array representing a map of the world, copies it, and adds simulated obstacles
   num_cells = len(map_array)
@@ -44,6 +115,11 @@ def create_test_map(map_array):
     random_cell = random.randint(0, num_cells)
     new_map[random_cell] = 1
   return new_map
+
+
+###################################################
+
+
 
 
 def _load_img_to_intensity_matrix(img_filename):
@@ -133,10 +209,6 @@ def get_travel_cost(vertex_source, vertex_dest):
 
   (i_source,j_source) = vertex_index_to_ij(vertex_source)
   (i_dest,j_dest) = vertex_index_to_ij(vertex_dest)
-  
-  
-  
-
 
   #vertex_source and vertex_dest are neighbors in a 4-connected grid (i.e., N,E,S,W of each other but not diagonal) and neither is occupied in g_WORLD_MAP (i.e., g_WORLD_MAP isn't 1 for either)
   if g_WORLD_MAP[vertex_dest]==1 or g_WORLD_MAP[vertex_source]==1:  
@@ -271,36 +343,6 @@ def render_map2(map_array, path):
       i += 1 
     pass
 
-
-def part_1():
-  global g_WORLD_MAP
-
-  # TODO: Initialize a grid map to use for your test -- you may use create_test_map for this, or manually set one up with obstacles
-  test_map = create_test_map(g_WORLD_MAP)
-  g_WORLD_MAP = test_map
-
-  # Use render_map to render your initialized obstacle map
-  print("starting vertex: " ,g_src_coordinates)
-  print("destination vertex: " ,g_dest_coordinates)
-
-  render_map(test_map)
-  # TODO: Find a path from the (I,J) coordinate pair in g_src_coordinates to the one in g_dest_coordinates using run_dijkstra and reconstruct_path
-  prev = run_dijkstra(ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]))
-  print("prev:", prev)
-  path = reconstruct_path(prev, ij_to_vertex_index(g_src_coordinates[0],g_src_coordinates[1]), ij_to_vertex_index(g_dest_coordinates[0],g_dest_coordinates[1]))
-  #print(path)
-  '''
-  TODO-
-    Display the final path in the following format:
-    Source: (0,0)
-    Goal: (3,1)
-    0 -> 1 -> 2 -> 6 -> 7
-  '''
-  for i in range(0, len(path)): 
-    path[i] = str(path[i]) 
-  
-  print("path: "," -> ".join(path))
-
 def part_2(args):
   global g_dest_coordinates,g_MAP_SIZE_X,g_MAP_SIZE_Y,g_MAP_RESOLUTION_X,g_MAP_RESOLUTION_Y,g_NUM_X_CELLS,g_NUM_Y_CELLS
   global g_src_coordinates,MAP_SIZE_X,MAP_SIZE_Y
@@ -360,16 +402,74 @@ def part_2(args):
 
 
 
+def init():
+    global publisher_motor, publisher_ping, publisher_servo, publisher_odom, publisher_render
+    global subscriber_odometry, subscriber_state
+    global pose2d_sparki_odometry,map_rep, servo_rad
+    # Set up your publishers and subscribers
+    # Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
+    rospy.init_node('buffemup')
+    publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray, queue_size=10)
+    publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D, queue_size=10)
+    publisher_ping = rospy.Publisher('sparki/ping_command', Empty, queue_size=10)
+    publisher_servo = rospy.Publisher('/sparki/set_servo', Int16, queue_size=10)
+    publisher_render = rospy.Publisher('/sparki/render_sim',Empty, queue_size=10)
 
+    subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
+    subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
+    rospy.sleep(1)
+    # Set sparki's servo to an angle pointing inward to the map (e.g., 45)
+    publisher_servo.publish(servo_deg)
+    publisher_render.publish(Empty())
+    #print("Did Init")
+    #print(map_rep)
+
+def Main():
+    global publisher_motor, publisher_ping, publisher_servo, publisher_odom, ir_sensor_read
+    global IR_THRESHOLD, CYCLE_TIME
+    global pose2d_sparki_odometry
+    # Init your node to register it with the ROS core
+    init()
+    while not rospy.is_shutdown():
+        # Implement CYCLE TIME
+        begin = time.time()
+
+        publisher_ping.publish(Empty())
+        # Implement line following code here
+        #      To create a message for changing motor speed, use Float32MultiArray()
+        #      (e.g., msg = Float32MultiArray()     msg.data = [1.0,1.0]      publisher.pub(msg))
+        msg = Float32MultiArray()
+        msg.data = [1.0, 1.0]
+        # Implement loop closure here
+        # add the msg.data to the where the sparki moves
+        #print(ir_sensor_read)
+        if(ir_sensor_read[1] < IR_THRESHOLD):
+            msg.data[0] = 0
+            #print(ir_sensor_read[3],"stef")
+            pass
+        elif(ir_sensor_read[3] < IR_THRESHOLD):
+            #print(ir_sensor_read[1],"3")
+            msg.data[1] = 0
+            
+        #print("Odom", pose2d_sparki_odometry)
+        #add the publish msg to the motor and to the ping
+         
+        publisher_motor.publish(msg)
+        publisher_ping.publish(Empty())
+        publisher_render.publish(Empty())
+        display_map()                    # Update the GUI 
+
+        if False:
+            rospy.loginfo("Loop Closure Triggered")
+            print("5")
+        if((time.time() - begin) < 50):
+            rospy.sleep(50 - time.time() - begin)
+
+        # Implement CYCLE TIME
+        rospy.sleep(0)
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="Dijkstra on image file")
-  parser.add_argument('-s','--src_coordinates', nargs=2, default=[1.2, 0.2], help='Starting x, y location in world coords')
-  parser.add_argument('-g','--dest_coordinates', nargs=2, default=[0.3, 0.7], help='Goal x, y location in world coords')
-  parser.add_argument('-o','--obstacles', nargs='?', type=str, default='obstacles_test1.png', help='Black and white image showing the obstacle locations')
-  args = parser.parse_args()
+    main()
 
 
-  part_1()
-  part_2(args)
