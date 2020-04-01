@@ -74,22 +74,22 @@ CYCLE_TIME   = 0.5    # In seconds
 # PART 5 | GLOBAL VARIABLES
 #====================================================================#
 g_CYCLE_TIME = .100
-path = []
+path         = []
 
 # Parameters you might need to use which will be set automatically
 MAP_SIZE_X = None
 MAP_SIZE_Y = None
 
-g_MAP_SIZE_X       = 2.                           # 2 m wide map
-g_MAP_SIZE_Y       = 1.5                          # 1.5 m tall map
-g_NUM_X_CELLS      = 4                            # We want 4 collumns
-g_NUM_Y_CELLS      = 4                            # and 4 rows
+g_MAP_SIZE_X       = 1.8                          # 2 m wide map
+g_MAP_SIZE_Y       = 1.2                          # 1.5 m tall map
+g_NUM_X_CELLS      = 60                           # We want 60 collumns
+g_NUM_Y_CELLS      = 40                           # and 40 rows
 g_MAP_RESOLUTION_X = g_MAP_SIZE_X/g_NUM_X_CELLS   # Calculate the X resolution based on the number of collumns
 g_MAP_RESOLUTION_Y = g_MAP_SIZE_Y/g_NUM_Y_CELLS   # Calculate the Y resolution based on the number of rows
 
 # Map from Lab 4: values of 0 indicate free space, 1 indicates occupied space
 g_NUM_CELLS = g_NUM_X_CELLS * g_NUM_Y_CELLS       # Caculate the number of cells in the map
-g_WORLD_MAP = [0] * g_NUM_CELLS   # Initialize graph (grid) as array with all 0 to indicate free space
+g_WORLD_MAP = [0] * g_NUM_CELLS                   # Initialize graph (grid) as array with all 0 to indicate free space
 
 # Source and Destination (I,J) grid coordinates
 g_dest_coordinates = (3,3)  # Source grid coordinate (I,J)
@@ -311,11 +311,10 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
     final_path.insert(0,prev[int(vertex)])    # Otherwise, keep pre-pending the previous vertex of the current vertex to the final path array 
     vertex = prev[int(vertex)]                # Then set the new vertex equal to the previous vertex
 
-  
   return final_path                           # Return the final path finally which, if a path was found, should return each vertice we took to get to the destination vertex from the source vertex
 
 #====================================================================#
-# CORE DJIKSTRA FUNCTIONS
+# MAP RENDERING FUNCTIONS
 #====================================================================#
 def render_map(map_array): 
     global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP
@@ -335,7 +334,7 @@ def render_map(map_array):
     pass
 
 #====================================================================#
-# CORE DJIKSTRA FUNCTIONS
+# GET GOALS FUNCTION
 #====================================================================#
 def GetGoals(path):
     Goals = []
@@ -344,9 +343,9 @@ def GetGoals(path):
         current.append(path[0])
         south = False
         north = False
-        east = False
-        west = False
-        
+        east  = False
+        west  = False
+
         if(path[1] == path[0] - g_NUM_X_CELLS ):
             north = True
         if(path[1] == path[0] + g_NUM_X_CELLS ):
@@ -388,7 +387,7 @@ def GetGoals(path):
     return Goals
             
 #====================================================================#
-# INITIALIZING FUNCTION, INPUT IS THE 
+# INITIALIZING FUNCTION
 #====================================================================#
 def init(args):
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom, publisher_render
