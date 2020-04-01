@@ -256,20 +256,21 @@ def assign_int_to_cell(i,j,val):
 
 import sys
 # Return cost of traversing from one cell to another
-def minCost(cell_index_from, cell_index_to):
-    global cost_map_rep
-    n,m = cell_index_to_ij(cell_index_to)
-    x,y = cell_index_to_ij(cell_index_from)
-    if (n < 0 or m < 0): 
-        return sys.maxsize 
-    elif (m == y and n == x): 
-        return cost[m][n] 
-    else: 
-        return cost[m][n] + min( minCost(cost, m-1, n-1), 
-                                minCost(cost, m-1, n), 
-                                minCost(cost, m, n-1) ) 
+# def minCost(cell_index_from, cell_index_to):
+#     global cost_map_rep
+#     n,m = cell_index_to_ij(cell_index_to)
+#     x,y = cell_index_to_ij(cell_index_from)
+#     cost = []
+#     if (n < 0 or m < 0): 
+#         return sys.maxsize 
+#     elif (m == y and n == x): 
+#         return cost[m][n] 
+#     else: 
+#         return cost[m][n] + min( minCost(cost, m-1, n-1), 
+#                                 minCost(cost, m-1, n), 
+#                                 minCost(cost, m, n-1) ) 
 
-    return cost
+#     return cost
 
 def min(x, y, z): 
     if (x < y): 

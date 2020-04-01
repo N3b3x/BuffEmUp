@@ -131,13 +131,9 @@ def get_travel_cost(vertex_source, vertex_dest):
   '''
   global g_NUM_Y_CELLS, g_NUM_X_CELLS, g_WORLD_MAP,g_NUM_X_CELLS  # Number of columns in the grid map 
 
-  (i_source,j_source) = vertex_index_to_ij(vertex_source)
-  (i_dest,j_dest) = vertex_index_to_ij(vertex_dest)
+  # (i_source,j_source) = vertex_index_to_ij(vertex_source)
+  # (i_dest,j_dest) = vertex_index_to_ij(vertex_dest)
   
-  
-  
-
-
   #vertex_source and vertex_dest are neighbors in a 4-connected grid (i.e., N,E,S,W of each other but not diagonal) and neither is occupied in g_WORLD_MAP (i.e., g_WORLD_MAP isn't 1 for either)
   if g_WORLD_MAP[vertex_dest]==1 or g_WORLD_MAP[vertex_source]==1:  
       return 1000
