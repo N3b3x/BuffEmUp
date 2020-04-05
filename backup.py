@@ -44,41 +44,9 @@ def _create_circle(self, x, y, r, **kwargs):
 tk.Canvas.create_circle = _create_circle
 
 #====================================================================#
-# PART 3 | GLOBAL VARIABLES
-#====================================================================#
-# SPARKI STATIC VARIABLES
-SPARKI_SERVO_LEFT    = 80
-SPARKI_SERVO_CENTER  = 0
-SPARKI_SERVO_RIGHT   = -80
-
-SPARKI_SPEED         = 0.0278   # 100% speed in m/s
-SPARKI_AXLE_DIAMETER = 0.085    # Distance between wheels, meters 
-SPARKI_WHEEL_RADIUS  = 0.03     # Radius of wheels, meters
-
-# VARIABLES FOR FEEDBACK CONTROL
-DIR_CCW = -1
-DIR_CW  = 1
-
-gain1 = [0.1,0.7,0.0] # Gains used before the distance threshold is reached, focus on distance and bearing error, and not heading at all
-gain2 = [0.3,0.01,0.0]
-gain3 = [0.01,0.01,0.2] # Gains used after reaching the distance threshold, we'll neglect distance and bearing error, and only focus on heading error
-
-left_speed_pct  = 0
-right_speed_pct = 0
-
-x_r_dot     = 0
-theta_r_dot = 0
-
-DISTANCE_THRESHOLD   = 0.03     # Distance threshold om where we use gain2
-d_achieve_err = DISTANCE_THRESHOLD
-b_achive_err  = 0.05
-h_achieve_err = 0.05
-
-#====================================================================#
 # PART 4 | GLOBAL VARIABLES
 #====================================================================#
 pose2d_sparki_odometry = Pose2D(0,0,0)    # Pose2D message object, contains x,y,theta members in meters and radians
-pose2d_sparki_goal = Pose2D(0,0,0)
 
 servo_deg = 0                             # Desired servo angle in degrees
 servo_rad = math.radians(servo_deg)       # Desired servo angle in radians which is what will be used for simulation
@@ -100,7 +68,7 @@ publisher_render    = None
 # PART 4 | GLOBAL CONSTANT VARIABLES
 #====================================================================#
 IR_THRESHOLD = 300    # IR sensor threshold for detecting black track. Change as necessary.
-CYCLE_TIME   = 0.05   # In seconds [50ms]
+CYCLE_TIME   = 0.5    # In seconds
 
 #====================================================================#
 # PART 5 | GLOBAL VARIABLES
@@ -112,17 +80,10 @@ path         = []
 MAP_SIZE_X = None
 MAP_SIZE_Y = None
 
-g_MAP_SIZE_X = 180                          # 180 cm wide map
-g_MAP_SIZE_Y = 120                          # 120 cm tall map
-
-use_cell_div = 2
-if(use_cell_div == 1):
-  g_NUM_X_CELLS      = 60                           # We want 60 collumns
-  g_NUM_Y_CELLS      = 40                           # and 40 rows, to have an even resolution 0f 3 cm for both x and 
-elif(use_cell_div == 2):
-  g_NUM_X_CELLS      = 15                           # We want 15 collumns
-  g_NUM_Y_CELLS      = 10                           # and 10 rows, to have an even resolution 0f 3 cm for both x and y
-
+g_MAP_SIZE_X       = 180                          # 180 cm wide map
+g_MAP_SIZE_Y       = 120                          # 120 cm tall map
+g_NUM_X_CELLS      = 60                           # We want 60 collumns
+g_NUM_Y_CELLS      = 40                           # and 40 rows, to have an even resolution 0f 3 cm for both x and y
 g_MAP_RESOLUTION_X = g_MAP_SIZE_X/g_NUM_X_CELLS   # Calculate the X resolution based on the number of collumns
 g_MAP_RESOLUTION_Y = g_MAP_SIZE_Y/g_NUM_Y_CELLS   # Calculate the Y resolution based on the number of rows
 
@@ -131,22 +92,8 @@ g_NUM_CELLS = g_NUM_X_CELLS * g_NUM_Y_CELLS       # Caculate the number of cells
 g_WORLD_MAP = [0] * g_NUM_CELLS                   # Initialize graph (grid) as array with all 0 to indicate free space
 
 # Source and Destination (X,Y) grid coordinates
-# g_src_xy_coordinates  = (1.70,0.50)   # Destination grid coordinate (X,Y) in m
-# g_dest_xy_coordinates = (1.00,1.10)  # Source grid coordinate (X,Y) in m
-
-# g_src_xy_coordinates  = (1.2,0.2)       # Destination grid coordinate (X,Y) in m
-# g_dest_xy_coordinates = (0.225,0.975)   # Source grid coordinate (X,Y) in m
-
-# g_src_xy_coordinates  = (0.9,0.30)  # Destination grid coordinate (X,Y) in m
-# g_dest_xy_coordinates = (0.9,0.75)  # Source grid coordinate (X,Y) in m
-
-# g_src_xy_coordinates  = (1.20,0.20)   # Destination grid coordinate (X,Y) in m
-# g_dest_xy_coordinates = (0.225,0.975) # Source grid coordinate (X,Y) in m
-
-g_src_xy_coordinates  = (0.225,0.60)  # Destination grid coordinate (X,Y) in m
-g_dest_xy_coordinates = (1.35,0.3)  # Source grid coordinate (X,Y) in m
-
-goals = []  # Will store the goals for the robot to go through
+g_src_xy_coordinates = (90,70)   # Destination grid coordinate (X,Y) in cm
+g_dest_xy_coordinates = (90,20)  # Source grid coordinate (X,Y) in cm
 
 #====================================================================#
 # Helper function to read the world image containing obstacles
@@ -225,51 +172,6 @@ def ij_coordinates_to_xy_coordinates(i,j):
   return x,y
 
 #====================================================================#
-# Helper function to calculate real world coordinates given a grid
-# coordinate.num_goals = len(goals)
-    # goals_pos = 0
-
-    # pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    # pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    # pose2d_sparki_odometry.theta = 0 
-
-    # for goals_pos in range(len(goals)-1):
-    #   pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    #   pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    #   pose2d_sparki_odometry.theta = 0 
-
-    #   publisher_odom.publish(pose2d_sparki_odometry)
-    #   publisher_render.publish(Empty())
-
-    #   time.sleep(2)
-
-    # time.sleep(10)
-num_goals = len(goals)
-    # goals_pos = 0
-
-    # pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    # pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    # pose2d_sparki_odometry.theta = 0 
-
-    # for goals_pos in range(len(goals)-1):
-    #   pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    #   pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    #   pose2d_sparki_odometry.theta = 0 
-
-    #   publisher_odom.publish(pose2d_sparki_odometry)
-    #   publisher_render.publish(Empty())
-
-    #   time.sleep(2)
-
-    # time.sleep(10)
-
-#====================================================================#
-def vertex_to_xy_coordinates(vertex):
-  [i,j] = vertex_index_to_ij(vertex)
-  [x,y] = ij_coordinates_to_xy_coordinates(i,j)
-  return x,y
-
-#====================================================================#
 # Helper function to calculate grid coordinate given real world 
 # coordinates
 #====================================================================#
@@ -304,13 +206,8 @@ def get_travel_cost(vertex_source, vertex_dest):
   '''
   global g_NUM_Y_CELLS, g_NUM_X_CELLS, g_WORLD_MAP,g_NUM_X_CELLS  # Number of columns in the grid map 
 
-  (i_source,j_source) = vertex_index_to_ij(vertex_source)
-  if((i_source<0 or i_source>g_NUM_X_CELLS) or (j_source<0 or j_source>g_NUM_Y_CELLS)):
-    return 1000
-
-  (i_dest,j_dest) = vertex_index_to_ij(vertex_dest)
-  if((i_dest<0 or i_dest>g_NUM_X_CELLS) or (j_dest<0 or j_dest>g_NUM_Y_CELLS)):
-    return 1000
+  # (i_source,j_source) = vertex_index_to_ij(vertex_source)
+  # (i_dest,j_dest) = vertex_index_to_ij(vertex_dest)
 
   #vertex_source and vertex_dest are neighbors in a 4-connected grid (i.e., N,E,S,W of each other but not diagonal) and neither is occupied in g_WORLD_MAP (i.e., g_WORLD_MAP isn't 1 for either)
   if g_WORLD_MAP[vertex_dest]==1 or g_WORLD_MAP[vertex_source]==1:  
@@ -366,19 +263,17 @@ def run_dijkstra(source_vertex):
         if(North >= 0 and North <= g_NUM_CELLS-1):                    # if it's value exist is greater than 0 and less than the Number of vertices that exist in our map
             Around.append(North)                                      # Append it's vertices number in the around array
 
-        
+        East = currentVertexIndex + 1                                 # Calculate the vertex number of the cell EAST of the current vertex
+        if(East >= 0 and East <= g_NUM_CELLS-1):                      # if it's value exist is greater than 0 and less than the Number of vertices that exist in our map
+            Around.append(East)                                       # Append it's vertices number in the around array
+
         South = currentVertexIndex + g_NUM_X_CELLS                    # Calculate the vertex of the cell SOUTH of the current vertex
         if(South >= 0 and South <= g_NUM_CELLS-1):                    # if it's value exist is greater than 0 and less than the Number of vertices that exist in our map
             Around.append(South)                                      # Append it's vertices number in the around array
 
-        # For the east and west, we also have to make sure that their vertices are on the same row as the current vertex if not, we'll loop through the map which doesn't make sense
-        East = currentVertexIndex + 1                                                                         # Calculate the vertex number of the cell EAST of the current vertex
-        if(East >= 0 and East <= g_NUM_CELLS-1 and (East//g_NUM_X_CELLS==currentVertexIndex//g_NUM_X_CELLS)): # if it's value exist is greater than 0 and less than the Number of vertices that exist in our map
-            Around.append(East)                                                                               # Append it's vertices number in the around array
-
-        West = currentVertexIndex - 1                                                                         # Calculate the vertex of the cell WEST of the current vertex
-        if(West >= 0 and West <= g_NUM_CELLS-1 and (West//g_NUM_X_CELLS==currentVertexIndex//g_NUM_X_CELLS)): # if it's value exist is greater than 0 and less than the Number of vertices that exist in our map
-            Around.append(West)                                                                               # Append it's vertices number in the around array
+        West = currentVertexIndex - 1                                 # Calculate the vertex of the cell WEST of the current vertex
+        if(West >= 0 and West <= g_NUM_CELLS-1):                      # if it's value exist is greater than 0 and less than the Number of vertices that exist in our map
+            Around.append(West)                                       # Append it's vertices number in the around array
 
         # Now that we have the neighboring vertices of the current vertex we're exploring
         # Let's go through each and calculate their cost
@@ -428,16 +323,15 @@ def reconstruct_path(prev, source_vertex, dest_vertex):
 #====================================================================#
 def display_map(path):
   # Display the map
-  global MAP_SIZE_X, MAP_SIZE_Y
   global g_NUM_X_CELLS, g_NUM_Y_CELLS, g_WORLD_MAP, r
   global canvas_height
   canvas.delete("all")        # Clears canvas
 
-  start_pixel_coord_x = (MAP_SIZE_X//g_NUM_X_CELLS)/2    # First circle x coord
-  start_pixel_coord_y = (MAP_SIZE_Y//g_NUM_Y_CELLS)/2    # First circle y coord
-  circle_rad          = min([start_pixel_coord_x,start_pixel_coord_y])    # Circle radius
+  start_pixel_coord_x = 10    # First circle x coord
+  start_pixel_coord_y = 10    # First circle y coord
+  circle_rad          = 10    # Circle radius
 
-  circle_offset       = circle_rad*2    # Pixel offset for each circle
+  circle_offset       = 20    # Pixel offset for each circle
 
   for j in range (g_NUM_Y_CELLS):
       for i in range(g_NUM_X_CELLS):
@@ -475,9 +369,52 @@ def display_map(path):
 #====================================================================#
 def GetGoals(path):
     Goals = []
-    for i in range(len(path)):
-      coord = vertex_to_xy_coordinates(path[i])
-      Goals.append(coord)
+    while(path):
+        current = []
+        current.append(path[0])
+        south = False
+        north = False
+        east  = False
+        west  = False
+
+        if(path[1] == path[0] - g_NUM_X_CELLS ):
+            north = True
+        if(path[1] == path[0] + g_NUM_X_CELLS ):
+            south = True
+        if(path[1] == path[0] - 1 ):
+            east = True
+        if(path[1] == path[0] + 1 ):
+            west = True
+     
+        path.pop(0)
+
+        if (north == True and path[1] == path[0]-g_NUM_X_CELLS):
+            path.pop(0)
+        else:
+            current.append(path[0])
+            Goals.append(current)
+            current = []
+
+        if (south == True and path[1] == path[0]+g_NUM_X_CELLS):
+            path.pop(0)
+        else:
+            current.append(path[0])
+            Goals.append(current)
+            current = []
+
+        if (east == True and path[1] == path[0]+1):
+          path.pop(0)
+        else:
+          current.append(path[0])
+          Goals.append(current)
+          current = []
+
+        if (south == True and path[1] == path[0]+g_NUM_X_CELLS):
+            path.pop(0)
+        else:
+            current.append(path[0])
+            Goals.append(current)
+            current = []
     return Goals
             
 #====================================================================#
@@ -526,165 +463,18 @@ def convert_robot_coords_to_world(x_r, y_r):
     return x_w, y_w
 
 #====================================================================#
-# FEEDBACK CONTROL HELPER FUNCTIONS
-#====================================================================#
-
-#=====================================================#
-# USED TO BOUND ANGLES BETWEEN -PI and PI
-#=====================================================#
-def boundTheta(theta):
-  M_PI = math.pi
-
-  if theta > M_PI:
-    theta = theta - 2*M_PI
-  if theta <= -M_PI:
-    theta = theta + 2*M_PI
-
-  return theta
-
-#=====================================================#
-# CALCULATE ERRORS
-#=====================================================#
-def calculateErrors(pose2d_sparki_goal):
-  global pose2d_sparki_odometry
-  global d_achieve_err,b_achive_err,h_achieve_err
-
-  x_r     = pose2d_sparki_odometry.x
-  y_r     = pose2d_sparki_odometry.y
-  theta_r = pose2d_sparki_odometry.theta
-
-  x_g     = pose2d_sparki_goal.x
-  y_g     = pose2d_sparki_goal.y
-  theta_g = pose2d_sparki_goal.theta
-
-  distance_err = math.sqrt((x_r-x_g)**2 + (y_r-y_g)**2)
-  bearing_err  = theta_r - math.atan2((y_g-y_r),(x_g-x_r))
-  heading_err  = theta_g - theta_r
-
-  bearing_err = boundTheta(bearing_err)
-  heading_err = boundTheta(heading_err)
-
-  goal_achieved = 0
-  if((distance_err<d_achieve_err) and (bearing_err<b_achive_err) and (heading_err < h_achieve_err)):
-    goal_achieved = 1
-
-  return distance_err,bearing_err,heading_err,goal_achieved
-
-#=====================================================#
-# CALCULATE WHEEL SPEEDS
-#=====================================================#
-def calculateWheelSpeeds(err):
-  global gain1, gain2, gain3, DISTANCE_THRESHOLD
-  global b_achive_err, SPARKI_AXLE_DIAMETER, SPARKI_WHEEL_RADIUS
-  global SPARKI_SPEED
-
-  d_gain1 = gain1[0]
-  b_gain1 = gain1[1]
-  h_gain1 = gain1[2]
-
-  d_gain2 = gain2[0]
-  b_gain2 = gain2[1]
-  h_gain2 = gain2[2]
-
-  d_gain3 = gain3[0]
-  b_gain3 = gain3[1]
-  h_gain3 = gain3[2]
-
-  # Extract out the errors passed out to the function
-  d_err = err[0]
-  b_err = err[1]
-  h_err = err[2]
-
-  b_err = boundTheta(b_err)
-  h_err = boundTheta(h_err)
-
-  # We need to have multiple gain settings because
-  # Initially, we want to put emphasis on fixing bearing
-  if((d_err > DISTANCE_THRESHOLD) and (b_err > b_achive_err)):
-    x_dot     = d_gain1 * d_err
-    theta_dot = -(b_gain1 * b_err) + -(h_gain1 * h_err)
-
-  # Then fixing the distance
-  elif d_err > DISTANCE_THRESHOLD:               # If the distance error is greater than that of the set threshold
-    x_dot     = d_gain2 * d_err
-    theta_dot = -(b_gain2 * b_err) + -(h_gain2 * h_err)
-
-  # Then finally the heading
-  else:
-    x_dot     = d_gain3 * d_err
-    theta_dot = -(b_gain3 * b_err) + -(h_gain3 * h_err)
-
-  phi_l = (((2 * x_dot) - (theta_dot* SPARKI_AXLE_DIAMETER))/(2 * SPARKI_WHEEL_RADIUS))
-  phi_r = (((2 * x_dot) + (theta_dot* SPARKI_AXLE_DIAMETER))/(2 * SPARKI_WHEEL_RADIUS))
-   
-  # Since the sparki wheels can only go max of SPARKI_SPEED m/s, if the speed calculated for the wheels surpasses
-  # what sparki can achieve, let's scale it down such that the highest speed is set to the max speed sparki can achive
-  # and the other is scaled accordingly 
-  if (max(math.fabs(phi_l),math.fabs(phi_r))*SPARKI_WHEEL_RADIUS) > SPARKI_SPEED: # Get the max speed and compare if it's greater than the sparki max speed
-    # if the left wheel is the greatest then we'll set the speed of the left wheel to 100% of the SPARKI_SPEED, and scale the right accordingly
-    if math.fabs(phi_l) > math.fabs(phi_r):   
-      left_speed_pct  = 1
-      right_speed_pct = math.fabs(phi_r/phi_l)
-
-    # if the right wheel is the greatest then we'll set the speed of the right wheel to 100% of the SPARKI_SPEED, and scale the left accordingly
-    elif math.fabs(phi_r) > math.fabs(phi_l):
-      left_speed_pct  = math.fabs(phi_l/phi_r)
-      right_speed_pct = 1
-
-    # if they're equal, set them to both 100% of the SPARKI_SPEED
-    else:
-      left_speed_pct  = 1
-      right_speed_pct = 1
-
-    # We also need to make sure to keep it's original sign, thus lets's give the negative value if phi_l or phi_r is less than 0
-    phi_l = -left_speed_pct*SPARKI_SPEED  if (phi_l<0) else left_speed_pct*SPARKI_SPEED
-    phi_r = -right_speed_pct*SPARKI_SPEED if (phi_r<0) else right_speed_pct*SPARKI_SPEED
-
-    x_dot = (SPARKI_WHEEL_RADIUS/2)*(phi_l+phi_r)
-    theta_dot = (SPARKI_WHEEL_RADIUS/SPARKI_AXLE_DIAMETER)*(phi_r-phi_l)
-
-  return phi_l, phi_r, x_dot, theta_dot
-
-#=====================================================#
-# UPDATE ODOMETRY
-#=====================================================#
-def update_odometry(x_r_dot, theta_r_dot):
-  global pose2d_sparki_odometry, CYCLE_TIME
-  theta = pose2d_sparki_odometry.theta
-
-  # y_r_dot will always be zero since the robot can't move sideways, 
-  # thus will not be accounted in the calculation.
-  x_I_dot     = math.cos(theta)*x_r_dot
-  y_I_dot     = math.sin(theta)*x_r_dot
-  theta_I_dot = theta_r_dot
-
-  delta_x_I     = x_I_dot     * CYCLE_TIME
-  delta_y_I     = y_I_dot     * CYCLE_TIME
-  delta_theta_I = theta_I_dot * CYCLE_TIME
-
-  pose2d_sparki_odometry.x     = pose2d_sparki_odometry.x     + delta_x_I
-  pose2d_sparki_odometry.y     = pose2d_sparki_odometry.y     + delta_y_I
-  pose2d_sparki_odometry.theta = pose2d_sparki_odometry.theta + delta_theta_I
-
-  pose2d_sparki_odometry.theta = boundTheta(pose2d_sparki_odometry.theta)
-
-  publisher_odom.publish(pose2d_sparki_odometry)
-
-
-#====================================================================#
 # INITIALIZING FUNCTION
 #====================================================================#
 def init(args):
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom, publisher_render
     global subscriber_odometry, subscriber_state
-    global pose2d_sparki_odometry, servo_rad, g_WORLD_MAP, path, goals
+    global pose2d_sparki_odometry, servo_rad, g_WORLD_MAP, path
     global g_src_xy_coordinates, g_dest_xy_coordinates
     global MAP_SIZE_X, MAP_SIZE_Y, g_NUM_X_CELLS, g_NUM_Y_CELLS
 
     # Set up your publishers and subscribers
     # Set up your initial odometry pose (pose2d_sparki_odometry) as a new Pose2D message object
     rospy.init_node('buffemup')
-
     publisher_motor = rospy.Publisher('/sparki/motor_command', Float32MultiArray, queue_size=10)
     publisher_odom = rospy.Publisher('/sparki/set_odometry', Pose2D, queue_size=10)
     publisher_ping = rospy.Publisher('sparki/ping_command', Empty, queue_size=10)
@@ -693,7 +483,6 @@ def init(args):
 
     subscriber_odometry = rospy.Subscriber('/sparki/odometry', Pose2D, callback_update_odometry)
     subscriber_state = rospy.Subscriber('/sparki/state', String, callback_update_state)
-
     rospy.sleep(1)
     # Set sparki's servo to an angle pointing inward to the map (e.g., 45)
     publisher_servo.publish(servo_deg)
@@ -715,6 +504,7 @@ def init(args):
     #print(pix_group_x)
     #print(pix_group_y)
 
+    time.sleep(20)
     for j in range(0,MAP_SIZE_Y,pix_group_y):
       for i in range(0,MAP_SIZE_X,pix_group_x):
         found_obstacle = 0
@@ -730,19 +520,27 @@ def init(args):
         if not found_obstacle: 
           g_WORLD_MAP.append(0) 
 
-    g_src_coordinates  = xy_coordinates_to_ij_coordinates(int(g_src_xy_coordinates[0]*100),int(g_src_xy_coordinates[1]*100))
-    g_dest_coordinates = xy_coordinates_to_ij_coordinates(int(g_dest_xy_coordinates[0]*100),int(g_dest_xy_coordinates[1]*100))
+    #print(g_WORLD_MAP)
+            
+    # for i in range(0,len(pixel_grid)-1,4):
+    #     for j in range(0,len(pixel_grid[i]),10):
+    #         if pixel_grid[i][j] != 0:
+    #             g_WORLD_MAP.append(1)
+    #         else:
+    #             g_WORLD_MAP.append(0)
 
-    #print("src_ij  = ",g_src_coordinates)
-    #print("dest_ij = ",g_dest_coordinates)
+    g_src_coordinates  = xy_coordinates_to_ij_coordinates(int(g_src_xy_coordinates[0]),int(g_src_xy_coordinates[1]))
+    g_dest_coordinates = xy_coordinates_to_ij_coordinates(int(g_dest_xy_coordinates[0]),int(g_dest_xy_coordinates[1]))
+
+    #print("src_ij = ",g_src_coordinates)
+    #print("dest_ij",g_dest_coordinates)
 
     source      = ij_to_vertex_index( g_src_coordinates[0],  g_src_coordinates[1])
     destination = ij_to_vertex_index( g_dest_coordinates[0], g_dest_coordinates[1])
 
     prev = run_dijkstra(source)
     path = reconstruct_path(prev, source, destination)
-    goals = GetGoals(path)
-    print(goals)
+    time.sleep(10)
     #print(path)
     display_map(path)
     
@@ -752,153 +550,49 @@ def init(args):
 def main(args):
     global publisher_motor, publisher_ping, publisher_servo, publisher_odom, ir_sensor_read
     global IR_THRESHOLD, CYCLE_TIME
-    global pose2d_sparki_odometry, pose2d_sparki_goal, goals, x_r_dot, theta_r_dot
+    global pose2d_sparki_odometry, path
 
     # Init your node to register it with the ROS core
     # Arguments are the source and destination vertices and the obstacles image file name
     init(args)
-    
-    ##########################################
-    # num_goals = len(goals)
-    # goals_pos = 0
-
-    # pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    # pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    # pose2d_sparki_odometry.theta = 0 
-
-    # for goals_pos in range(len(goals)-1):
-    #   pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    #   pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    #   pose2d_sparki_odometry.theta = 0 
-
-    #   publisher_odom.publish(pose2d_sparki_odometry)
-    #   publisher_render.publish(Empty())
-
-    #   time.sleep(2)
-
-    # time.sleep(10)
-
-    #########################################
-    num_goals = len(goals)
-    goals_pos = 0
-
-    pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
-    pose2d_sparki_odometry.y     = goals[goals_pos][1]/100
-    pose2d_sparki_odometry.theta = 0 
-
-    goal_achieved = 1
 
     while not rospy.is_shutdown():
         # Implement CYCLE TIME
         begin = time.time()
 
-        # publisher_ping.publish(Empty())
-        # # Implement line following code here
-        # #      To create a message for changing motor speed, use Float32MultiArray()
-        # #      (e.g., msg = Float32MultiArray()     msg.data = [1.0,1.0]      publisher.pub(msg))
-        # msg = Float32MultiArray()
-        # msg.data = [1.0, 1.0]
-        # # Implement loop closure here
-        # # add the msg.data to the where the sparki moves
-        # #print(ir_sensor_read)
-        # if(ir_sensor_read[1] < IR_THRESHOLD):
-        #     msg.data[0] = 0
-        #     #print(ir_sensor_read[3],"stef")
-        #     pass
-        # elif(ir_sensor_read[3] < IR_THRESHOLD):
-        #     #print(ir_sensor_read[1],"3")
-        #     msg.data[1] = 0
+        publisher_ping.publish(Empty())
+        # Implement line following code here
+        #      To create a message for changing motor speed, use Float32MultiArray()
+        #      (e.g., msg = Float32MultiArray()     msg.data = [1.0,1.0]      publisher.pub(msg))
+        msg = Float32MultiArray()
+        msg.data = [1.0, 1.0]
+        # Implement loop closure here
+        # add the msg.data to the where the sparki moves
+        #print(ir_sensor_read)
+        if(ir_sensor_read[1] < IR_THRESHOLD):
+            msg.data[0] = 0
+            #print(ir_sensor_read[3],"stef")
+            pass
+        elif(ir_sensor_read[3] < IR_THRESHOLD):
+            #print(ir_sensor_read[1],"3")
+            msg.data[1] = 0
             
         #print("Odom", pose2d_sparki_odometry)
         #add the publish msg to the motor and to the ping
          
-        # publisher_motor.publish(msg)
-        # publisher_ping.publish(Empty())
-        # publisher_render.publish(Empty())
-        r.update()                        # Update GUI
+        publisher_motor.publish(msg)
+        publisher_ping.publish(Empty())
+        publisher_render.publish(Empty())
+        display_map(path)                    # Update the GUI 
 
-        #============================================#
-        # LAB 3 CODE GOES HERE, 
-        #   variable goals has all the coordinates we 
-        #   need to go through
-        #============================================#
+        if False:
+            rospy.loginfo("Loop Closure Triggered")
+            #print("5")
+        if((time.time() - begin) < 50):
+            rospy.sleep(50 - time.time() - begin)
 
-        if goals_pos < (num_goals-2):
-          #print("GOOD")
-          update_odometry(x_r_dot,theta_r_dot)      # Calculate and Update the odometry, also publish to see what it would look like on the simulator
-
-          #====================================#
-          # PUT CODE TO UPDATE GOALS HERE
-          if goal_achieved:
-
-            x_i = goals[goals_pos][0]/100
-            y_i = goals[goals_pos][1]/100
-
-            x_ip1 = goals[goals_pos + 1][0]/100
-            y_ip1 = goals[goals_pos + 1][1]/100
-
-            dx = x_ip1 - x_i
-            dy = y_ip1 - y_i
-
-            # pose_theta_goal = pose2d_sparki_odometry.theta + math.atan2(dy,dx)
-            pose_theta_goal = math.pi
-
-            #pose_theta_goal = math.atan2(dy,dx)
-
-            pose2d_sparki_goal.x     = x_ip1
-            pose2d_sparki_goal.y     = y_ip1
-            pose2d_sparki_goal.theta = pose_theta_goal
-            goals_pos = goals_pos + 1
-
-            goal_achieved = 0
-          #====================================#
-
-          err = calculateErrors(pose2d_sparki_goal) # Calculate the distance, bearing, and heading errors
-          goal_achieved = err[3]                    # 0 = distance err, 1 = bearing error, 2 = heading error, 3 = achived goal?
-          
-          #print("Distance err = ",err[0],"\tBearing Err = ",err[1],"\tHeading Err = ",err[2])
-
-          # After calculating our new erros, if we've reached our goal we don't have to move until goal is updated
-          # Thus, let's set the x_r_dot and theta_r_dot = 0
-          if goal_achieved:
-            #phi_l      = 0
-            #phi_r      = 0
-            x_r_dot     = 0
-            theta_r_dot = 0
-
-            # Let's print to see if the sparki odemtery is actually close to the goal
-            print("CURR: X = ", pose2d_sparki_odometry.x," Y = ",pose2d_sparki_odometry.y," Theta = ",pose2d_sparki_odometry.theta)
-            print("GOAL: X = ", pose2d_sparki_goal.x," Y = ",pose2d_sparki_goal.y, " Theta = ",pose2d_sparki_goal.theta,"\n")
-
-          # However, if goal hasn't been achieved yet, calculate new speeds
-          else:
-            ret = calculateWheelSpeeds(err)           # Calculate the robots wheel speed but also the robots velocities 
-                                                      # We're not calculating y_r_dot because it is always zero for robots that can't move sidways
-            #phi_l      = ret[0]
-            #phi_r      = ret[1]
-            x_r_dot     = ret[2]
-            theta_r_dot = ret[3]
-
-          publisher_render.publish(Empty())           # Render robot
-
-          # Implement CYCLE_TIME
-          if((time.time() - begin) < 50):
-              rospy.sleep(50 - time.time() - begin)
-
-          # end = time.time()
-          # time_run = end-begin
-
-          # if(time_run<CYCLE_TIME):
-          #   rospy.sleep(CYCLE_TIME-time_run)
-
-        elif goals_pos == num_goals-2:
-          update_odometry(x_r_dot,theta_r_dot)      # Calculate and Update the odometry, also publish to see what it would look like on the simulator
-          publisher_render.publish(Empty())         # Render robot
-          goals_pos = goals_pos + 1
-
-        #============================================#
-        #============================================#
-        #============================================#
+        # Implement CYCLE TIME
+        rospy.sleep(0)
 
 
 if __name__ == "__main__":
