@@ -59,9 +59,9 @@ SPARKI_WHEEL_RADIUS  = 0.03     # Radius of wheels, meters
 DIR_CCW = -1
 DIR_CW  = 1
 
-gain1 = [0.1,0.7,0.0] # Gains used before the distance threshold is reached, focus on distance and bearing error, and not heading at all
+gain1 = [0.01,0.7,0.0] # Gains used before the distance threshold is reached, focus on distance and bearing error, and not heading at all
 gain2 = [0.3,0.01,0.0]
-gain3 = [0.01,0.01,0.2] # Gains used after reaching the distance threshold, we'll neglect distance and bearing error, and only focus on heading error
+gain3 = [0.00,0.00,0.7] # Gains used after reaching the distance threshold, we'll neglect distance and bearing error, and only focus on heading error
 
 left_speed_pct  = 0
 right_speed_pct = 0
@@ -730,6 +730,9 @@ def init(args):
         if not found_obstacle: 
           g_WORLD_MAP.append(0) 
 
+    g_src_xy_coordinates = (float(args.src_coordinates[0]), float(args.src_coordinates[1]))
+    g_dest_xy_coordinates = (float(args.dest_coordinates[0]), float(args.dest_coordinates[1]))
+
     g_src_coordinates  = xy_coordinates_to_ij_coordinates(int(g_src_xy_coordinates[0]*100),int(g_src_xy_coordinates[1]*100))
     g_dest_coordinates = xy_coordinates_to_ij_coordinates(int(g_dest_xy_coordinates[0]*100),int(g_dest_xy_coordinates[1]*100))
 
@@ -837,10 +840,10 @@ def main(args):
             x_ip1 = goals[goals_pos + 1][0]/100
             y_ip1 = goals[goals_pos + 1][1]/100
 
-            dx = x_ip1 - x_i
-            dy = y_ip1 - y_i
-
+            # dx = x_ip1 - x_i
+            # dy = y_ip1 - y_i
             # pose_theta_goal = pose2d_sparki_odometry.theta + math.atan2(dy,dx)
+
             pose_theta_goal = math.pi
 
             #pose_theta_goal = math.atan2(dy,dx)
@@ -903,10 +906,11 @@ def main(args):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Dijkstra on image file")
-  parser.add_argument('-s','--src_coordinates', nargs=2, default=[1.2, 0.2], help='Starting x, y location in world coords')
-  parser.add_argument('-g','--dest_coordinates', nargs=2, default=[0.3, 0.7], help='Goal x, y location in world coords')
+  parser.add_argument('-s','--src_coordinates', nargs=2, default=[0.225, 0.6], help='Starting x, y location in world coords')
+  parser.add_argument('-g','--dest_coordinates', nargs=2, default=[1.35, 0.3], help='Goal x, y location in world coords')
   parser.add_argument('-o','--obstacles', nargs='?', type=str, default='obstacles_test1.png', help='Black and white image showing the obstacle locations')
   args = parser.parse_args()
+
   main(args)
 
 
