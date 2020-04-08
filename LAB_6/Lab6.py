@@ -60,8 +60,8 @@ DIR_CCW = -1
 DIR_CW  = 1
 
 gain1 = [0.01,0.7,0.0] # Gains used before the distance threshold is reached, focus on distance and bearing error, and not heading at all
-gain2 = [0.3,0.01,0.0]
-gain3 = [0.00,0.00,0.7] # Gains used after reaching the distance threshold, we'll neglect distance and bearing error, and only focus on heading error
+gain2 = [0.3,0.1,0.0]
+gain3 = [0.1,0.01,0.3] # Gains used after reaching the distance threshold, we'll neglect distance and bearing error, and only focus on heading error
 
 left_speed_pct  = 0
 right_speed_pct = 0
@@ -783,6 +783,10 @@ def main(args):
 
     #########################################
     num_goals = len(goals)
+    if(num_goals == 0):
+      print("NO PATH FOUND, EXITING CODE")
+      exit()
+
     goals_pos = 0
 
     pose2d_sparki_odometry.x     = goals[goals_pos][0]/100
